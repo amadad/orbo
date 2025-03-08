@@ -16,7 +16,7 @@ class SharedData:
     def initialize(self):
         """Initialize shared data storage."""
         with self._global_lock:
-            self._data = {"system": {}, "memory": {}, "state": {}, "temp": {}}
+            self._data = {"system": {}, "memory": {}, "state": {}, "temp": {}, "body_state": {}}
             for category in self._data:
                 self._locks[category] = Lock()
 

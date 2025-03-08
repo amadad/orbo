@@ -1,7 +1,6 @@
 # Orb, The Digital Being Framework for Autonomous Agents  
 *(Forked from Pippin)*
 
-<<<<<<< HEAD
 Welcome to **Orb** — a flexible, open-source framework to create a digital “being” that:
 
 - Learns about your goals/objectives and your character’s persona.  
@@ -9,17 +8,6 @@ Welcome to **Orb** — a flexible, open-source framework to create a digital “
 - Dynamically creates and tests new “Activities” in pursuit of your objectives.  
 - Manages a memory system to track past actions and outcomes.  
 - Provides a web UI for easy onboarding/config, or a CLI wizard if you prefer terminal workflows.  
-=======
-# Pippin, The Digital Being Framework for Autonomous Agents
-
-Welcome to Pippin — a flexible, open-source framework to create a digital “being” that:
-
-- Learns about your goals/objectives and your character’s persona.
-- Connects to various tools or APIs (via API keys or OAuth flows through Composio) to perform tasks.
-- Dynamically creates and tests new “Activities” in pursuit of your objectives.
-- Manages a memory system to track past actions and outcomes.
-- Provides a web UI for easy onboarding/config, or a CLI wizard if you prefer terminal workflows.
->>>>>>> upstream/main
 
 ---
 

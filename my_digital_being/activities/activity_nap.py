@@ -34,7 +34,7 @@ class NapActivity(ActivityBase):
             # e.g., shared_data.set('body_state', 'currently_napping', True)
             # or log the timestamp, etc.
             shared_data.set(
-                "body_state",
+                "state",
                 "nap_info",
                 {"last_nap_duration": self.nap_minutes, "timestamp": "Just now!"},
             )
