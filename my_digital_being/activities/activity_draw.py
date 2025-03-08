@@ -12,13 +12,13 @@ logger = logging.getLogger(__name__)
 @activity(
     name="draw",
     energy_cost=0.6,
-    cooldown=7200,  # 2 hours
+    cooldown=3600, 
     required_skills=["image_generation"],
 )
 class DrawActivity(ActivityBase):
     def __init__(self):
         super().__init__()
-        self.default_size = (512, 512)
+        self.default_size = (1024, 1024)
         self.default_format = "png"
 
     async def execute(self, shared_data) -> ActivityResult:

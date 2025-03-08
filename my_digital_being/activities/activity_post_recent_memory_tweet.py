@@ -296,4 +296,8 @@ class PostRecentMemoriesTweetActivity(ActivityBase):
                     logger.error(f"Failed to extract drawing URL: {e}")
                     continue
         
+<<<<<<< HEAD
         return drawing_urls
+=======
+        return drawing_urls
+>>>>>>> upstream/main

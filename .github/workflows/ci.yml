@@ -1,16 +1,14 @@
-# .github/workflows/ci.yml
-
 name: Simple CI Pipeline
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   build:
-    runs-on: ubuntu-22.04  # Fixed Ubuntu version to ensure consistency
+    runs-on: ubuntu-22.04
 
     steps:
       # 1. Checkout Repository
@@ -21,45 +19,49 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'  # Specify the Python version your project uses
+          python-version: "3.9"
 
       # 3. Install Dependencies
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
+          # Ensure all your requirements are listed in requirements.txt
+          # Example (installing manually):
           pip install -r requirements.txt
+          pip install selenium pytest-asyncio pytest requests aiohttp
 
-      # 4. Copy Sample Configs to Config Directory
+      # 4. Copy Sample Configs to Config Directory (Adjust as needed)
       - name: Copy Sample Configs
         run: |
           mkdir -p my_digital_being/config
           cp my_digital_being/config_sample/*.json my_digital_being/config/
 
-      # 5. Set Dummy API Keys in Config Files
+      # 5. Set Dummy API Keys in Config Files (Adjust if needed)
       - name: Set Dummy API Keys
         run: |
-          # Replace API keys in character_config.json with blank or dummy values
           sed -i 's/"COMPOSIO_API_KEY": ".*"/"COMPOSIO_API_KEY": ""/' my_digital_being/config/character_config.json
-          
-          # Replace API keys in skills_config.json with blank or dummy values
           sed -i 's/"LITELLM_API_KEY": ".*"/"LITELLM_API_KEY": ""/' my_digital_being/config/skills_config.json
           sed -i 's/"OPENAI_API_KEY": ".*"/"OPENAI_API_KEY": ""/' my_digital_being/config/skills_config.json
           sed -i 's/"TWITTER_API_KEY": ".*"/"TWITTER_API_KEY": ""/' my_digital_being/config/skills_config.json
-          # Add more sed commands as necessary based on your config files
 
-      # 6. Install and Use the 'tree' Command for Debugging
-      - name: Install tree
+      # 6. Install Chrome and Chromedriver
+      - name: Install Chrome and Chromedriver
         run: |
           sudo apt-get update
-          sudo apt-get install -y tree
+          sudo apt-get install -y chromium-browser chromium-chromedriver
+          # Remove or replace existing chromedriver symlink, if any
+          if [ -L /usr/bin/chromedriver ]; then
+            sudo rm /usr/bin/chromedriver
+          elif [ -e /usr/bin/chromedriver ]; then
+            sudo rm /usr/bin/chromedriver
+          fi
+          sudo ln -s /usr/lib/chromium-browser/chromedriver /usr/bin/chromedriver
 
-      - name: List Directory Structure
+      # 7. Set Environment Variables for Testing
+      - name: Set Environment Variables
+        run: echo "COMPOSIO_API_KEY=dummy_value" >> $GITHUB_ENV
+
+      # 8. Run Tests
+      - name: Run Tests
         run: |
-          echo "Repository structure:"
-          tree -L 3
-
-      # 7. Compile Python Files
-      - name: Compile Python Files
-        run: |
-          python -m compileall my_digital_being/
-
+          pytest tests/ --maxfail=5 --disable-warnings

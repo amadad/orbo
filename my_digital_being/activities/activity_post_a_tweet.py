@@ -32,7 +32,11 @@ class PostTweetActivity(ActivityBase):
         # or fetch it dynamically. Otherwise, substitute accordingly:
         self.twitter_username = "YourUserName"
         # set this to True if you want to generate an image for the tweet
+<<<<<<< HEAD
         self.image_generation_enabled = True
+=======
+        self.image_generation_enabled = False
+>>>>>>> upstream/main
         self.default_size = (1024, 1024)  # Added for image generation
         self.default_format = "png"  # Added for image generation
 
@@ -208,4 +212,8 @@ class PostTweetActivity(ActivityBase):
         else:
             logger.warning("Image generation not available, proceeding with text-only tweet")
         
+<<<<<<< HEAD
         return None, []
+=======
+        return None, []
+>>>>>>> upstream/main
