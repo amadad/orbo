@@ -4,10 +4,11 @@ version = "0.1.0"
 description = "A sophisticated Python framework for creating intelligent digital entities"
 requires-python = ">=3.11"
 dependencies = [
-    "composio-core>=0.6.7",
-    "composio-openai==0.6.7",
+    "composio-core>=0.7.6",
+    "composio-openai==0.7.6",
     "flask-login>=0.6.3",
     "flask-wtf>=1.2.2",
+    "litellm>=1.63.3",
     "oauthlib>=3.2.2",
     "openai>=1.58.1",
     "python-dotenv>=1.0.1",

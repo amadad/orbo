@@ -1,10 +1,12 @@
 import logging
 from typing import Dict, Any, List
+from urllib.parse import urlparse
 
 from framework.activity_decorator import activity, ActivityBase, ActivityResult
 from framework.api_management import api_manager
 from framework.memory import Memory
 from skills.skill_chat import chat_skill
+from skills.skill_x_api import XAPISkill
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +28,6 @@ class PostRecentMemoriesTweetActivity(ActivityBase):
     def __init__(self, num_activities_to_fetch: int = 10):
         super().__init__()
         self.max_length = 280
-        self.composio_action = "TWITTER_CREATION_OF_A_POST"
         self.twitter_username = "YourUserName"
 
         # Activity types to ignore in memory results
@@ -87,7 +88,10 @@ class PostRecentMemoriesTweetActivity(ActivityBase):
                 new_memories=new_memories,
             )
 
-            # 6) Use chat skill to generate the tweet text
+            # 6) Extract drawing URLs from memories
+            drawing_urls = self._extract_drawing_urls(new_memories)
+            
+            # 7) Use chat skill to generate the tweet text
             chat_response = await chat_skill.get_chat_completion(
                 prompt=prompt_text,
                 system_prompt=(
@@ -103,8 +107,12 @@ class PostRecentMemoriesTweetActivity(ActivityBase):
             if len(tweet_text) > self.max_length:
                 tweet_text = tweet_text[: self.max_length - 3] + "..."
 
-            # 7) Post to Twitter via Composio
-            post_result = self._post_tweet_via_composio(tweet_text)
+            # 8) Post to Twitter via X API with any extracted images
+            x_api = XAPISkill({
+                "enabled": True,
+                "twitter_username": self.twitter_username
+            })
+            post_result = await x_api.post_tweet(tweet_text, drawing_urls)
             if not post_result["success"]:
                 error_msg = post_result.get(
                     "error", "Unknown error posting tweet via Composio"
@@ -119,7 +127,7 @@ class PostRecentMemoriesTweetActivity(ActivityBase):
                 else None
             )
 
-            # 8) Return success, storing the new memories in "data" so we can skip them next time
+            # 9) Return success, storing the new memories in "data" so we can skip them next time
             logger.info(
                 f"Successfully posted tweet about recent memories: {tweet_text[:50]}..."
             )
@@ -136,6 +144,7 @@ class PostRecentMemoriesTweetActivity(ActivityBase):
                     "prompt_used": prompt_text,
                     "model": chat_response["data"].get("model"),
                     "finish_reason": chat_response["data"].get("finish_reason"),
+                    "image_count": len(drawing_urls),
                 },
             )
 
@@ -259,35 +268,32 @@ class PostRecentMemoriesTweetActivity(ActivityBase):
         )
         return prompt
 
-    def _post_tweet_via_composio(self, tweet_text: str) -> Dict[str, Any]:
+    def _extract_drawing_urls(self, memories: List[str]) -> List[str]:
         """
-        Same as your original PostTweetActivity approach to tweeting via Composio.
+        Extract URLs from all DrawActivity entries in memories.
+        Returns a list of valid URLs, empty list if none found.
         """
-        try:
-            from framework.composio_integration import composio_manager
-
-            logger.info(
-                f"Posting tweet via Composio action='{self.composio_action}', text='{tweet_text[:50]}...'"
-            )
-
-            response = composio_manager._toolset.execute_action(
-                action=self.composio_action,
-                params={"text": tweet_text},
-                entity_id="MyDigitalBeing",
-            )
-
-            success_val = response.get("success", response.get("successfull"))
-            if success_val:
-                data_section = response.get("data", {})
-                nested_data = data_section.get("data", {})
-                tweet_id = nested_data.get("id")
-                return {"success": True, "tweet_id": tweet_id}
-            else:
-                return {
-                    "success": False,
-                    "error": response.get("error", "Unknown or missing success key"),
-                }
-
-        except Exception as e:
-            logger.error(f"Error in Composio tweet post: {e}", exc_info=True)
-            return {"success": False, "error": str(e)}
+        drawing_urls = []
+        
+        for memory in memories:
+            if memory.startswith("DrawActivity =>"):
+                try:
+                    # Extract the JSON-like string after '=>'
+                    data_str = memory.split("=>")[1].strip()
+                    # Convert string representation to dict
+                    data = eval(data_str)
+                    
+                    # Extract URL from image_data
+                    if 'image_data' in data and 'url' in data['image_data']:
+                        url = data['image_data']['url']
+                        # Validate URL
+                        result = urlparse(url)
+                        if all([result.scheme, result.netloc]):
+                            drawing_urls.append(url)
+                        else:
+                            logger.warning(f"Invalid URL format found in DrawActivity: {url}")
+                except Exception as e:
+                    logger.error(f"Failed to extract drawing URL: {e}")
+                    continue
+        
+        return drawing_urls
