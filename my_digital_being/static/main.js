@@ -126,6 +126,9 @@ function connect() {
             break;
           case 'get_activity_history':
             displayActivityHistory(data.response);
+            updateActivityChart();
+            // Try to fix any remaining "Invalid Date" instances
+            setTimeout(fixInvalidDates, 100);
             break;
           case 'update_config':
             getConfig();
@@ -304,10 +307,55 @@ function getActivityHistory(offset = 0) {
     params: { offset, limit: PAGE_SIZE }
   }));
 }
+
+// Add a new debug function to inspect activity data
+function debugActivityData() {
+  console.log('Current activity data:', activityData);
+  if (activityData.length > 0) {
+    console.log('Sample timestamp:', activityData[0].timestamp);
+    console.log('Sample parsed date:', safeParseDate(activityData[0].timestamp));
+  }
+  console.log('Activity types:', Array.from(activityTypes));
+  console.log('Chart data periods:', getPeriodKey(new Date(), document.getElementById('timeRange').value));
+}
+
 function reloadHistory() {
   currentOffset = 0;
-  getActivityHistory(0);
+  activityData = [];
+  activityTypes = new Set();
+  document.getElementById('activityEntries').innerHTML = '';
+  activityChart.data.datasets = [];
+  activityChart.update();
+  getActivityHistory();
 }
+
+// Add a new function to replace all instances of "Invalid Date" in the activity history
+function fixInvalidDates() {
+  // Find all spans with "Invalid Date" in the activity history
+  const spans = document.querySelectorAll('#activityEntries span');
+  spans.forEach(span => {
+    if (span.textContent === 'Invalid Date') {
+      // Try to find the activity this belongs to
+      const activityEntry = span.closest('.activity-entry');
+      if (activityEntry) {
+        const activityName = activityEntry.querySelector('span[style*="font-weight:bold"]')?.textContent;
+        if (activityName) {
+          // Find the matching activity in our data
+          const activity = activityData.find(a => a.activity_type === activityName);
+          if (activity && activity.timestamp) {
+            // Try to format the date again
+            const formattedDate = formatTimestamp(activity.timestamp);
+            span.textContent = formattedDate;
+          } else {
+            // If we can't find it, just use current time
+            span.textContent = new Date().toLocaleString();
+          }
+        }
+      }
+    }
+  });
+}
+
 function loadMoreActivities() {
   currentOffset += PAGE_SIZE;
   getActivityHistory(currentOffset);
@@ -746,10 +794,14 @@ function displayActivityHistory(data) {
     // Generate HTML for new activities
     const newEntriesHTML = data.activities.map(a => {
       const col = getActivityColor(a.activity_type);
+      
+      // Use the formatTimestamp function from date-fix.js
+      const dateDisplay = formatTimestamp(a.timestamp);
+
       return `
         <div class="activity-entry" style="background:var(--section-bg); padding:10px; margin-bottom:10px; border-radius:8px;">
           <div>
-            <span style="color:var(--text-secondary)">${new Date(a.timestamp).toLocaleString()}</span>
+            <span style="color:var(--text-secondary)">${dateDisplay}</span>
             <span style="color:${col}; font-weight:bold;">${a.activity_type}</span>
             ${a.success
           ? `<span style="color: var(--success-color)">✓ Success</span>`
@@ -915,7 +967,14 @@ function updateActivityChart() {
   // Count occurrences in each period bucket
   activityData.forEach(act => {
     if (!selectedActivities.has(act.activity_type)) return;
-    const ts = new Date(act.timestamp);
+    
+    // Use the safeParseDate function from date-fix.js
+    const ts = safeParseDate(act.timestamp);
+    if (!ts) {
+      console.warn('Invalid date in activity data:', act);
+      return; // Skip this activity
+    }
+    
     if (ts < startTime) return;
     // Use getPeriodKey from chart-utils
     const periodKey = getPeriodKey(ts, timeRange);
@@ -1519,6 +1578,77 @@ function displayAllSkills(skills) {
     `;
   });
 
+  container.innerHTML = html;
+}
+
+// Helper function to safely parse ISO dates
+function safeParseDate(dateStr) {
+  if (!dateStr) return null;
+  try {
+    // Handle ISO 8601 format by replacing +00:00 with Z
+    const fixedTimestamp = dateStr.toString().replace(/(\+00:00)$/, 'Z');
+    const date = new Date(fixedTimestamp);
+    if (isNaN(date.getTime())) {
+      console.error('Invalid date after parsing:', dateStr);
+      return null;
+    }
+    return date;
+  } catch (e) {
+    console.error('Error parsing date:', dateStr, e);
+    return null;
+  }
+}
+
+// Replace the old timestamp code in the config table
+function formatConfigValue(k, v) {
+  if (typeof v === 'object' && v !== null) {
+    return `<pre>${JSON.stringify(v, null, 2)}</pre>`;
+  } else if (k.toLowerCase().includes('time') || k.toLowerCase().includes('date')) {
+    const date = safeParseDate(v);
+    if (date) {
+      v = date.toLocaleString();
+    }
+  }
+  return String(v);
+}
+
+// And in the activity editing modal
+function openEditActivityModal(name, activity_config) {
+  currentEditingActivity = name;
+  
+  // Format the last execution date properly
+  let lastExecDisplay = 'Never';
+  if (activity_config.last_execution) {
+    const date = safeParseDate(activity_config.last_execution);
+    if (date) {
+      lastExecDisplay = date.toLocaleString();
+    }
+  }
+  
+  document.getElementById('editActivityName').textContent = name;
+  document.getElementById('activityConfigInfo').innerHTML = `
+    Cooldown Period: ${activity_config.cooldown_period} seconds<br>
+    Energy Cost: ${activity_config.energy_cost}<br>
+    Last Execution: ${lastExecDisplay}<br>
+    Required Skills: ${activity_config.required_skills?.join(', ') || 'None'}<br>
+  `;
+}
+
+function displayConfigTable(data, containerId, title, editable = false) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  
+  const heading = title ? `<h3>${title}</h3>` : '';
+  
+  let html = `${heading}<table class="config-table">`;
+  for (const [k, v] of Object.entries(data)) {
+    // Use our new helper function instead of inline logic
+    html += `<tr>
+      <td>${k}</td>
+      <td>${formatConfigValue(k, v)}</td>
+    </tr>`;
+  }
+  html += '</table>';
   container.innerHTML = html;
 }
 

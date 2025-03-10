@@ -264,6 +264,7 @@ class PostRecentMemoriesTweetActivity(ActivityBase):
             f"{memories_str}\n\n"
             f"Please craft a short tweet (under 280 chars) that references these memories, "
             f"reflects the personality and objectives, and ensures it's not repetitive or dull. "
+            f"DO NOT USE ANY EMOJIS in the tweet. "
             f"Keep it interesting, cohesive, and mindful of the overall tone.\n"
         )
         return prompt

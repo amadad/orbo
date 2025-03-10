@@ -12,6 +12,10 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/night-owl.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
 
+  <!-- Custom date handling for ISO 8601 compatibility -->
+  <script src="date-fix.js"></script>
+  <script src="chart-utils.js"></script>
+
   <style>
     /*******************************************************
      *              GLOBAL THEME + BASIC STYLES
@@ -647,6 +651,10 @@
       <button class="reload-button" onclick="reloadHistory()">
         <span class="reload-icon">↻</span> Reload
       </button>
+      
+      <button class="reload-button" onclick="debugActivityData()" style="background-color: #964B00;">
+        Debug
+      </button>
     </div>
 
     <!-- Chart area -->
@@ -655,6 +663,9 @@
     <!-- Activity Log area -->
     <div class="dashboard-card" id="activityLog" style="margin-top:20px;">
       <h3>Activity History</h3>
+      <button onclick="fixInvalidDates()" class="btn" style="background-color: #964B00; margin-top:10px;">
+        Fix Invalid Dates
+      </button>
       <div id="activityEntries" style="margin-top:20px;"></div>
       <button id="loadMoreButton" class="btn" onclick="loadMoreActivities()" style="display:none;margin-top:10px;">
         Load More
@@ -698,7 +709,6 @@
   </div>
 
   <!-- Chart utilities, front-end logic, highlight.js, etc. -->
-  <script src="chart-utils.js"></script>
   <script src="main.js"></script>
   <script>
     // Initialize highlight.js across all code blocks
