@@ -2,7 +2,15 @@
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "../convex/_generated/api";
 
-const CONVEX_URL = process.env.CONVEX_URL ?? "https://your-deployment.convex.cloud";
+// Set via: export CONVEX_URL=$(bunx convex dev --url-only)
+// Or for prod: export CONVEX_URL=https://academic-toad-450.convex.cloud
+const CONVEX_URL = process.env.CONVEX_URL;
+
+if (!CONVEX_URL) {
+  console.error("Error: CONVEX_URL environment variable not set");
+  console.error("Run: export CONVEX_URL=$(bunx convex dev --url-only)");
+  process.exit(1);
+}
 
 const client = new ConvexHttpClient(CONVEX_URL);
 
