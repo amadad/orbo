@@ -1,10 +1,19 @@
-import { useQuery, useMutation, useAction } from "convex/react";
+import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import type { Doc } from "../../convex/_generated/dataModel";
-import { StatusCard } from "./StatusCard";
-import { ActivityList } from "./ActivityList";
-import { MemoryFeed } from "./MemoryFeed";
 import { Controls } from "./Controls";
+import {
+  Box,
+  Flex,
+  Text,
+  Avatar,
+  Card,
+  Badge,
+  Progress,
+  IconButton,
+  Tooltip,
+  ScrollArea,
+} from "@radix-ui/themes";
 
 interface DashboardProps {
   being: Doc<"beingState">;
@@ -13,155 +22,239 @@ interface DashboardProps {
 export function Dashboard({ being }: DashboardProps) {
   const activities = useQuery(api.activities.list) ?? [];
   const availableActivities = useQuery(api.activities.getAvailable) ?? [];
-  const recentMemories = useQuery(api.memory.getRecent, { limit: 10 }) ?? [];
-  const history = useQuery(api.activities.getHistory, { limit: 10 }) ?? [];
-  const selectionDebug = useQuery(api.selector.getSelectionDebug);
+  const recentMemories = useQuery(api.memory.getRecent, { limit: 20 }) ?? [];
+  const history = useQuery(api.activities.getHistory, { limit: 5 }) ?? [];
+  const recentImages = useQuery(api.activityRunner.getRecentImages, { limit: 4 }) ?? [];
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100">
-      {/* Header */}
-      <header className="border-b border-zinc-800 bg-zinc-900/50 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-lg font-bold">
-              {being.name[0]}
-            </div>
-            <div>
-              <h1 className="text-xl font-semibold">{being.name}</h1>
-              <p className="text-sm text-zinc-500">{being.objectives.primary}</p>
-            </div>
-          </div>
+    <Box
+      style={{
+        height: "100vh",
+        background: "var(--gray-1)",
+        display: "grid",
+        gridTemplateRows: "auto 1fr",
+        overflow: "hidden",
+      }}
+    >
+      {/* Compact Header */}
+      <Box px="4" py="3" style={{ borderBottom: "1px solid var(--gray-4)" }}>
+        <Flex justify="between" align="center">
+          <Flex align="center" gap="3">
+            <Avatar
+              size="3"
+              fallback={being.name[0]}
+              radius="full"
+              style={{
+                background: "linear-gradient(135deg, var(--violet-9), var(--plum-9))",
+              }}
+            />
+            <Box>
+              <Text size="2" weight="medium">{being.name}</Text>
+              <Text size="1" color="gray" style={{ display: "block", maxWidth: 300, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {being.objectives.primary}
+              </Text>
+            </Box>
+          </Flex>
           <Controls being={being} />
-        </div>
-      </header>
+        </Flex>
+      </Box>
 
-      <main className="max-w-7xl mx-auto px-6 py-8">
-        {/* Status Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <StatusCard
-            label="Energy"
-            value={`${Math.round(being.energy * 100)}%`}
-            icon="⚡"
-            color={being.energy > 0.5 ? "green" : being.energy > 0.2 ? "yellow" : "red"}
-          >
-            <div className="mt-2 h-2 bg-zinc-800 rounded-full overflow-hidden">
-              <div
-                className="h-full energy-gradient transition-all duration-500"
-                style={{ width: `${being.energy * 100}%` }}
-              />
-            </div>
-          </StatusCard>
+      {/* Main Grid */}
+      <Box
+        style={{
+          display: "grid",
+          gridTemplateColumns: "280px 1fr 280px",
+          gap: 1,
+          background: "var(--gray-4)",
+          overflow: "hidden",
+        }}
+      >
+        {/* Left: Status Panel */}
+        <Box p="3" style={{ background: "var(--gray-1)", overflow: "auto" }}>
+          {/* Energy */}
+          <Box mb="4">
+            <Flex justify="between" align="center" mb="1">
+              <Text size="1" color="gray">Energy</Text>
+              <Text size="1" weight="medium">{Math.round(being.energy * 100)}%</Text>
+            </Flex>
+            <Progress
+              value={being.energy * 100}
+              color={being.energy > 0.5 ? "green" : being.energy > 0.2 ? "yellow" : "red"}
+              size="1"
+            />
+          </Box>
 
-          <StatusCard
-            label="Mood"
-            value={being.mood}
-            icon={getMoodEmoji(being.mood)}
-            color="purple"
-          >
-            <div className="mt-2 flex gap-2">
-              {["neutral", "curious", "creative", "focused"].map((mood) => (
-                <span
+          {/* Mood */}
+          <Box mb="4">
+            <Text size="1" color="gray" mb="2" style={{ display: "block" }}>Mood</Text>
+            <Flex gap="1" wrap="wrap">
+              {["neutral", "curious", "creative", "focused", "tired"].map((mood) => (
+                <Badge
                   key={mood}
-                  className={`text-xs px-2 py-1 rounded ${
-                    being.mood === mood
-                      ? "bg-violet-500/20 text-violet-300"
-                      : "bg-zinc-800 text-zinc-500"
-                  }`}
+                  size="1"
+                  color={being.mood === mood ? "violet" : "gray"}
+                  variant={being.mood === mood ? "solid" : "soft"}
                 >
                   {mood}
-                </span>
+                </Badge>
               ))}
-            </div>
-          </StatusCard>
+            </Flex>
+          </Box>
 
-          <StatusCard
-            label="Activities"
-            value={`${availableActivities.length} available`}
-            icon="🎯"
-            color="blue"
-          >
-            <div className="mt-2 text-sm text-zinc-500">
-              {activities.length} total · {history.length} executed
-            </div>
-          </StatusCard>
-        </div>
+          {/* Personality */}
+          <Box mb="4">
+            <Text size="1" color="gray" mb="2" style={{ display: "block" }}>Personality</Text>
+            <Flex direction="column" gap="2">
+              {Object.entries(being.personality).map(([trait, value]) => (
+                <Box key={trait}>
+                  <Flex justify="between" mb="1">
+                    <Text size="1" style={{ textTransform: "capitalize" }}>{trait}</Text>
+                    <Text size="1" color="gray">{Math.round(value * 100)}%</Text>
+                  </Flex>
+                  <Progress value={value * 100} size="1" color="gray" />
+                </Box>
+              ))}
+            </Flex>
+          </Box>
 
-        {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Activities */}
-          <div className="lg:col-span-2 space-y-6">
-            <section>
-              <h2 className="text-lg font-medium mb-4 flex items-center gap-2">
-                <span className="text-zinc-400">📋</span> Activities
-              </h2>
-              <ActivityList
-                activities={activities}
-                available={availableActivities}
-                debug={selectionDebug}
-              />
-            </section>
+          <Box mb="4">
+            <Flex justify="between" align="center" mb="2">
+              <Text size="1" color="gray">Activities</Text>
+              <Text size="1" color="gray">{availableActivities.length}/{activities.length}</Text>
+            </Flex>
+            <Flex direction="column" gap="1">
+              {activities.slice(0, 6).map((activity) => {
+                const isAvailable = availableActivities.some(a => a._id === activity._id);
+                return (
+                  <Flex key={activity._id} justify="between" align="center" py="1">
+                    <Text size="1" color={isAvailable ? undefined : "gray"} style={{ opacity: isAvailable ? 1 : 0.5 }}>
+                      {activity.name}
+                    </Text>
+                    {isAvailable && (
+                      <Box
+                        style={{
+                          width: 6,
+                          height: 6,
+                          borderRadius: "50%",
+                          background: "var(--green-9)",
+                        }}
+                      />
+                    )}
+                  </Flex>
+                );
+              })}
+            </Flex>
+          </Box>
 
-            <section>
-              <h2 className="text-lg font-medium mb-4 flex items-center gap-2">
-                <span className="text-zinc-400">📜</span> Recent History
-              </h2>
-              <div className="space-y-2">
-                {history.length === 0 ? (
-                  <p className="text-zinc-500 text-sm">No activities executed yet.</p>
-                ) : (
-                  history.map((h) => (
-                    <div
-                      key={h._id}
-                      className="bg-zinc-900 rounded-lg p-4 border border-zinc-800"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium">{h.activityName}</span>
-                        <span
-                          className={`text-xs px-2 py-1 rounded ${
-                            h.success
-                              ? "bg-green-500/20 text-green-400"
-                              : "bg-red-500/20 text-red-400"
-                          }`}
-                        >
-                          {h.success ? "Success" : "Failed"}
-                        </span>
-                      </div>
-                      <div className="mt-2 text-sm text-zinc-500 flex items-center gap-4">
-                        <span>⚡ {Math.round((h.energyBefore - h.energyAfter) * 100)}%</span>
-                        <span>⏱️ {h.durationMs}ms</span>
-                        <span>{new Date(h.executedAt).toLocaleTimeString()}</span>
-                      </div>
-                      {h.error && (
-                        <p className="mt-2 text-sm text-red-400">{h.error}</p>
-                      )}
-                    </div>
-                  ))
-                )}
-              </div>
-            </section>
-          </div>
+          {/* Generated Images */}
+          {recentImages.length > 0 && (
+            <Box>
+              <Text size="1" color="gray" mb="2" style={{ display: "block" }}>Generated Images</Text>
+              <Flex direction="column" gap="2">
+                {recentImages.map((img) => (
+                  <Box key={img._id}>
+                    {img.url && (
+                      <img
+                        src={img.url}
+                        alt={img.prompt}
+                        style={{
+                          width: "100%",
+                          borderRadius: 6,
+                          marginBottom: 4,
+                        }}
+                      />
+                    )}
+                    <Text size="1" color="gray" style={{ display: "block", fontSize: 10, lineHeight: 1.3 }}>
+                      {img.prompt.slice(0, 80)}...
+                    </Text>
+                  </Box>
+                ))}
+              </Flex>
+            </Box>
+          )}
+        </Box>
 
-          {/* Memory Feed */}
-          <div>
-            <h2 className="text-lg font-medium mb-4 flex items-center gap-2">
-              <span className="text-zinc-400">💭</span> Memory
-            </h2>
-            <MemoryFeed memories={recentMemories} />
-          </div>
-        </div>
-      </main>
-    </div>
+        {/* Center: Memory Stream */}
+        <ScrollArea style={{ background: "var(--gray-1)" }}>
+          <Box p="3">
+            <Text size="1" color="gray" mb="3" style={{ display: "block" }}>Memory Stream</Text>
+            <Flex direction="column" gap="2">
+              {recentMemories.length === 0 ? (
+                <Text size="1" color="gray">No memories yet</Text>
+              ) : (
+                recentMemories.map((memory) => (
+                  <Box
+                    key={memory._id}
+                    py="2"
+                    style={{ borderBottom: "1px solid var(--gray-3)" }}
+                  >
+                    <Text size="1" style={{ lineHeight: 1.5 }}>
+                      {memory.content}
+                    </Text>
+                    <Flex gap="2" mt="1" align="center">
+                      <Badge size="1" color={getMemoryColor(memory.type)} variant="soft">
+                        {memory.type}
+                      </Badge>
+                      <Text size="1" color="gray">{formatTimeAgo(memory.createdAt)}</Text>
+                    </Flex>
+                  </Box>
+                ))
+              )}
+            </Flex>
+          </Box>
+        </ScrollArea>
+
+        {/* Right: History */}
+        <Box p="3" style={{ background: "var(--gray-1)", overflow: "auto" }}>
+          <Text size="1" color="gray" mb="3" style={{ display: "block" }}>Recent Activity</Text>
+          <Flex direction="column" gap="2">
+            {history.length === 0 ? (
+              <Text size="1" color="gray">No activity yet</Text>
+            ) : (
+              history.map((h) => (
+                <Box key={h._id} py="2" style={{ borderBottom: "1px solid var(--gray-3)" }}>
+                  <Flex justify="between" align="center">
+                    <Text size="1" weight="medium">{h.activityName}</Text>
+                    <Box
+                      style={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: "50%",
+                        background: h.success ? "var(--green-9)" : "var(--red-9)",
+                      }}
+                    />
+                  </Flex>
+                  <Flex gap="2" mt="1">
+                    <Text size="1" color="gray">
+                      -{Math.round((h.energyBefore - h.energyAfter) * 100)}%
+                    </Text>
+                    <Text size="1" color="gray">{h.durationMs}ms</Text>
+                  </Flex>
+                </Box>
+              ))
+            )}
+          </Flex>
+        </Box>
+      </Box>
+    </Box>
   );
 }
 
-function getMoodEmoji(mood: string): string {
-  const emojis: Record<string, string> = {
-    neutral: "😐",
-    happy: "😊",
-    tired: "😴",
-    curious: "🤔",
-    creative: "✨",
-    focused: "🎯",
+function getMemoryColor(type: string): "blue" | "violet" | "green" | "yellow" | "gray" {
+  const colors: Record<string, "blue" | "violet" | "green" | "yellow" | "gray"> = {
+    activity: "blue",
+    thought: "violet",
+    observation: "green",
+    interaction: "yellow",
   };
-  return emojis[mood] ?? "😐";
+  return colors[type] ?? "gray";
+}
+
+function formatTimeAgo(timestamp: number): string {
+  const seconds = Math.floor((Date.now() - timestamp) / 1000);
+  if (seconds < 60) return "now";
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}m`;
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h`;
+  return `${Math.floor(seconds / 86400)}d`;
 }

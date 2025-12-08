@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Card, Flex, Text, Box } from "@radix-ui/themes";
 
 interface StatusCardProps {
   label: string;
@@ -8,27 +9,37 @@ interface StatusCardProps {
   children?: ReactNode;
 }
 
-const colorMap = {
-  green: "from-green-500/20 to-green-500/5 border-green-500/30",
-  yellow: "from-yellow-500/20 to-yellow-500/5 border-yellow-500/30",
-  red: "from-red-500/20 to-red-500/5 border-red-500/30",
-  blue: "from-blue-500/20 to-blue-500/5 border-blue-500/30",
-  purple: "from-violet-500/20 to-violet-500/5 border-violet-500/30",
+const colorStyles = {
+  green: { background: "linear-gradient(135deg, var(--green-3), var(--green-2))", borderColor: "var(--green-6)" },
+  yellow: { background: "linear-gradient(135deg, var(--yellow-3), var(--yellow-2))", borderColor: "var(--yellow-6)" },
+  red: { background: "linear-gradient(135deg, var(--red-3), var(--red-2))", borderColor: "var(--red-6)" },
+  blue: { background: "linear-gradient(135deg, var(--blue-3), var(--blue-2))", borderColor: "var(--blue-6)" },
+  purple: { background: "linear-gradient(135deg, var(--violet-3), var(--violet-2))", borderColor: "var(--violet-6)" },
 };
 
 export function StatusCard({ label, value, icon, color, children }: StatusCardProps) {
   return (
-    <div
-      className={`bg-gradient-to-br ${colorMap[color]} rounded-xl p-5 border backdrop-blur-sm`}
+    <Card
+      size="3"
+      style={{
+        background: colorStyles[color].background,
+        borderColor: colorStyles[color].borderColor,
+        borderWidth: 1,
+        borderStyle: "solid",
+      }}
     >
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-sm text-zinc-400 mb-1">{label}</p>
-          <p className="text-2xl font-semibold capitalize">{value}</p>
-        </div>
-        <span className="text-2xl">{icon}</span>
-      </div>
+      <Flex justify="between" align="start">
+        <Box>
+          <Text size="2" color="gray" mb="1" style={{ display: "block" }}>
+            {label}
+          </Text>
+          <Text size="6" weight="bold" style={{ textTransform: "capitalize" }}>
+            {value}
+          </Text>
+        </Box>
+        <Text size="6">{icon}</Text>
+      </Flex>
       {children}
-    </div>
+    </Card>
   );
 }

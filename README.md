@@ -4,6 +4,8 @@ An autonomous digital being framework built with TypeScript, Convex, React, and 
 
 Orbo is a self-improving AI agent that learns about your objectives, develops its own personality, and autonomously executes activities to pursue its goals.
 
+> Inspired by [Pippin](https://github.com/yoheinakajima/pippin) by Yohei Nakajima - an autonomous AI agent framework that explores personality-driven activity selection and memory systems.
+
 ## Features
 
 - **Real-time Dashboard** - Watch your being think, act, and remember in real-time
@@ -15,9 +17,9 @@ Orbo is a self-improving AI agent that learns about your objectives, develops it
 
 ## Tech Stack
 
-- **Frontend**: React 19 + Tailwind CSS + Vite
+- **Frontend**: React 19 + Radix UI + Tailwind CSS + Vite
 - **Backend**: [Convex](https://convex.dev) (database, crons, real-time)
-- **LLM**: [TanStack AI](https://tanstack.com/ai) + OpenAI
+- **LLM**: Google Gemini 2.0 Flash-Lite
 - **Runtime**: [Bun](https://bun.sh)
 
 ## Quick Start
@@ -36,10 +38,10 @@ bun run dev:backend
 
 This will prompt you to create a Convex project and set up your `.env.local` with `VITE_CONVEX_URL`.
 
-### 3. Add your OpenAI key to Convex
+### 3. Add your Gemini API key to Convex
 
 ```bash
-bunx convex env set OPENAI_API_KEY sk-...
+bunx convex env set GOOGLE_GENERATIVE_AI_API_KEY your-api-key
 ```
 
 ### 4. Start the frontend

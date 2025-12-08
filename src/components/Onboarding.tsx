@@ -1,6 +1,16 @@
 import { useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useState } from "react";
+import {
+  Box,
+  Flex,
+  Text,
+  TextField,
+  TextArea,
+  Button,
+  Slider,
+  Avatar,
+} from "@radix-ui/themes";
 
 export function Onboarding() {
   const [step, setStep] = useState(1);
@@ -39,171 +49,103 @@ export function Onboarding() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-6">
-      <div className="w-full max-w-lg">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-3xl font-bold mb-4">
-            O
-          </div>
-          <h1 className="text-3xl font-bold text-zinc-100">Create Your Being</h1>
-          <p className="text-zinc-500 mt-2">
-            Set up an autonomous digital being that pursues your objectives
-          </p>
-        </div>
-
-        {/* Step indicators */}
-        <div className="flex items-center justify-center gap-2 mb-8">
-          {[1, 2, 3].map((s) => (
-            <div
-              key={s}
-              className={`w-2 h-2 rounded-full transition-colors ${
-                s === step ? "bg-violet-500" : s < step ? "bg-violet-500/50" : "bg-zinc-700"
-              }`}
+    <Box style={{ minHeight: "100vh", background: "var(--gray-1)" }}>
+      <Flex direction="column" align="center" justify="center" style={{ minHeight: "100vh" }} p="4">
+        <Box style={{ width: "100%", maxWidth: 360 }}>
+          {/* Logo */}
+          <Flex direction="column" align="center" mb="6">
+            <Avatar
+              size="5"
+              fallback={name[0] || "O"}
+              radius="full"
+              style={{ background: "linear-gradient(135deg, var(--violet-9), var(--plum-9))" }}
             />
-          ))}
-        </div>
+            <Text size="5" weight="medium" mt="3">{step === 1 ? "Name your being" : step === 2 ? "Set objective" : "Personality"}</Text>
+          </Flex>
 
-        {/* Form card */}
-        <div className="bg-zinc-900 rounded-2xl p-6 border border-zinc-800">
+          {/* Steps */}
+          <Flex justify="center" gap="1" mb="5">
+            {[1, 2, 3].map((s) => (
+              <Box
+                key={s}
+                style={{
+                  width: 24,
+                  height: 2,
+                  borderRadius: 1,
+                  background: s <= step ? "var(--violet-9)" : "var(--gray-6)",
+                }}
+              />
+            ))}
+          </Flex>
+
           {step === 1 && (
-            <div className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-zinc-300 mb-2">
-                  What should your being be called?
-                </label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Orbo"
-                  className="w-full px-4 py-3 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
-                />
-              </div>
-
-              <button
-                onClick={() => setStep(2)}
-                disabled={!name.trim()}
-                className="w-full py-3 rounded-lg bg-violet-600 hover:bg-violet-500 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors"
-              >
+            <Flex direction="column" gap="4">
+              <TextField.Root
+                size="3"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Name"
+              />
+              <Button size="3" onClick={() => setStep(2)} disabled={!name.trim()}>
                 Continue
-              </button>
-            </div>
+              </Button>
+            </Flex>
           )}
 
           {step === 2 && (
-            <div className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-zinc-300 mb-2">
-                  What is {name}'s primary objective?
-                </label>
-                <textarea
-                  value={objective}
-                  onChange={(e) => setObjective(e.target.value)}
-                  placeholder="e.g., Share interesting thoughts about AI and technology on Twitter, engage with the community, and build a following"
-                  rows={4}
-                  className="w-full px-4 py-3 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent resize-none"
-                />
-              </div>
-
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setStep(1)}
-                  className="flex-1 py-3 rounded-lg bg-zinc-800 hover:bg-zinc-700 font-medium transition-colors"
-                >
+            <Flex direction="column" gap="4">
+              <TextArea
+                size="2"
+                value={objective}
+                onChange={(e) => setObjective(e.target.value)}
+                placeholder="What should this being do?"
+                rows={3}
+              />
+              <Flex gap="2">
+                <Button size="3" variant="soft" color="gray" onClick={() => setStep(1)} style={{ flex: 1 }}>
                   Back
-                </button>
-                <button
-                  onClick={() => setStep(3)}
-                  disabled={!objective.trim()}
-                  className="flex-1 py-3 rounded-lg bg-violet-600 hover:bg-violet-500 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors"
-                >
+                </Button>
+                <Button size="3" onClick={() => setStep(3)} disabled={!objective.trim()} style={{ flex: 1 }}>
                   Continue
-                </button>
-              </div>
-            </div>
+                </Button>
+              </Flex>
+            </Flex>
           )}
 
           {step === 3 && (
-            <div className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-zinc-300 mb-4">
-                  Adjust {name}'s personality
-                </label>
-
-                {Object.entries(personality).map(([trait, value]) => (
-                  <div key={trait} className="mb-4">
-                    <div className="flex justify-between text-sm mb-1">
-                      <span className="capitalize text-zinc-400">{trait}</span>
-                      <span className="text-zinc-500">{Math.round(value * 100)}%</span>
-                    </div>
-                    <input
-                      type="range"
-                      min="0"
-                      max="100"
-                      value={value * 100}
-                      onChange={(e) =>
-                        setPersonality((p) => ({
-                          ...p,
-                          [trait]: Number(e.target.value) / 100,
-                        }))
-                      }
-                      className="w-full h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-violet-500"
-                    />
-                  </div>
-                ))}
-              </div>
+            <Flex direction="column" gap="4">
+              {Object.entries(personality).map(([trait, value]) => (
+                <Box key={trait}>
+                  <Flex justify="between" mb="1">
+                    <Text size="1" style={{ textTransform: "capitalize" }}>{trait}</Text>
+                    <Text size="1" color="gray">{Math.round(value * 100)}%</Text>
+                  </Flex>
+                  <Slider
+                    size="1"
+                    value={[value * 100]}
+                    onValueChange={(v) => setPersonality((p) => ({ ...p, [trait]: v[0] / 100 }))}
+                    min={0}
+                    max={100}
+                  />
+                </Box>
+              ))}
 
               {error && (
-                <div className="p-3 rounded-lg bg-red-500/20 border border-red-500/30 text-red-400 text-sm">
-                  {error}
-                </div>
+                <Text size="1" color="red">{error}</Text>
               )}
 
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setStep(2)}
-                  className="flex-1 py-3 rounded-lg bg-zinc-800 hover:bg-zinc-700 font-medium transition-colors"
-                >
+              <Flex gap="2">
+                <Button size="3" variant="soft" color="gray" onClick={() => setStep(2)} style={{ flex: 1 }}>
                   Back
-                </button>
-                <button
-                  onClick={handleCreate}
-                  disabled={isCreating}
-                  className="flex-1 py-3 rounded-lg bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-all flex items-center justify-center gap-2"
-                >
-                  {isCreating ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      Creating...
-                    </>
-                  ) : (
-                    <>Create {name}</>
-                  )}
-                </button>
-              </div>
-            </div>
+                </Button>
+                <Button size="3" onClick={handleCreate} disabled={isCreating} style={{ flex: 1 }}>
+                  {isCreating ? "Creating..." : "Create"}
+                </Button>
+              </Flex>
+            </Flex>
           )}
-        </div>
-
-        {/* Preview */}
-        {step === 3 && (
-          <div className="mt-6 p-4 rounded-lg bg-zinc-900/50 border border-zinc-800">
-            <h3 className="text-sm font-medium text-zinc-400 mb-2">Preview</h3>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center font-bold">
-                {name[0]}
-              </div>
-              <div>
-                <p className="font-medium text-zinc-200">{name}</p>
-                <p className="text-sm text-zinc-500 truncate max-w-[280px]">
-                  {objective}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
+        </Box>
+      </Flex>
+    </Box>
   );
 }

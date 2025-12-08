@@ -88,9 +88,9 @@ export const getEnabled = query({
 export const initializeDefaults = mutation({
   handler: async (ctx) => {
     const defaultSkills = [
-      { name: "chat", requiredApiKeys: ["OPENAI_API_KEY"] },
+      { name: "chat", requiredApiKeys: ["GOOGLE_GENERATIVE_AI_API_KEY"] },
       { name: "twitter", requiredApiKeys: ["TWITTER_API_KEY", "TWITTER_API_SECRET"] },
-      { name: "image_generation", requiredApiKeys: ["OPENAI_API_KEY"] },
+      { name: "image_generation", requiredApiKeys: ["GOOGLE_GENERATIVE_AI_API_KEY"] },
       { name: "web_scraping", requiredApiKeys: [] },
     ];
 

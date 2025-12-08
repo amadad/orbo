@@ -1,4 +1,5 @@
 import type { Doc } from "../../convex/_generated/dataModel";
+import { Card, Flex, Text, Badge, Box, Progress } from "@radix-ui/themes";
 
 interface ActivityListProps {
   activities: Doc<"activities">[];
@@ -21,7 +22,7 @@ export function ActivityList({ activities, available, debug }: ActivityListProps
   const debugMap = new Map(debug?.activities?.map((a) => [a.name, a]));
 
   return (
-    <div className="space-y-3">
+    <Flex direction="column" gap="3">
       {activities.map((activity) => {
         const isAvailable = availableNames.has(activity.name);
         const debugInfo = debugMap.get(activity.name);
@@ -30,76 +31,74 @@ export function ActivityList({ activities, available, debug }: ActivityListProps
           : 0;
 
         return (
-          <div
+          <Card
             key={activity._id}
-            className={`rounded-lg p-4 border transition-all ${
-              isAvailable
-                ? "bg-zinc-900 border-zinc-700 hover:border-zinc-600"
-                : "bg-zinc-900/50 border-zinc-800 opacity-60"
-            }`}
+            size="2"
+            style={{
+              opacity: isAvailable ? 1 : 0.6,
+              background: isAvailable ? "var(--gray-2)" : "var(--gray-1)",
+            }}
           >
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <h3 className="font-medium truncate">{activity.name}</h3>
+            <Flex justify="between" gap="4">
+              <Box style={{ flex: 1, minWidth: 0 }}>
+                <Flex align="center" gap="2">
+                  <Text weight="medium" style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {activity.name}
+                  </Text>
                   {isAvailable && (
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-green-500/20 text-green-400">
+                    <Badge color="green" size="1">
                       Ready
-                    </span>
+                    </Badge>
                   )}
                   {!activity.enabled && (
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-zinc-700 text-zinc-400">
+                    <Badge color="gray" size="1">
                       Disabled
-                    </span>
+                    </Badge>
                   )}
-                </div>
-                <p className="text-sm text-zinc-500 mt-1">{activity.description}</p>
+                </Flex>
+                <Text size="2" color="gray" mt="1" style={{ display: "block" }}>
+                  {activity.description}
+                </Text>
 
-                {/* Debug reasons */}
                 {debugInfo && !debugInfo.available && debugInfo.reasons.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-1">
+                  <Flex gap="1" wrap="wrap" mt="2">
                     {debugInfo.reasons.map((reason, i) => (
-                      <span
-                        key={i}
-                        className="text-xs px-2 py-0.5 rounded bg-zinc-800 text-zinc-400"
-                      >
+                      <Badge key={i} color="gray" variant="soft" size="1">
                         {reason}
-                      </span>
+                      </Badge>
                     ))}
-                  </div>
+                  </Flex>
                 )}
-              </div>
+              </Box>
 
-              <div className="text-right text-sm space-y-1 flex-shrink-0">
-                <div className="text-zinc-400">
+              <Flex direction="column" align="end" gap="1" style={{ flexShrink: 0 }}>
+                <Text size="2" color="gray">
                   ⚡ {Math.round(activity.energyCost * 100)}%
-                </div>
-                <div className="text-zinc-500">
+                </Text>
+                <Text size="1" color="gray">
                   {activity.executionCount} runs
-                </div>
+                </Text>
                 {cooldownRemaining > 0 && (
-                  <div className="text-yellow-500">
+                  <Text size="1" color="yellow">
                     ⏳ {formatCooldown(cooldownRemaining)}
-                  </div>
+                  </Text>
                 )}
-              </div>
-            </div>
+              </Flex>
+            </Flex>
 
-            {/* Cooldown bar */}
             {cooldownRemaining > 0 && (
-              <div className="mt-3 h-1 bg-zinc-800 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-yellow-500/50 transition-all"
-                  style={{
-                    width: `${(cooldownRemaining / activity.cooldownMs) * 100}%`,
-                  }}
+              <Box mt="3">
+                <Progress
+                  value={(cooldownRemaining / activity.cooldownMs) * 100}
+                  color="yellow"
+                  size="1"
                 />
-              </div>
+              </Box>
             )}
-          </div>
+          </Card>
         );
       })}
-    </div>
+    </Flex>
   );
 }
 

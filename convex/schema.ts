@@ -83,4 +83,12 @@ export default defineSchema({
     context: v.optional(v.string()), // e.g., "activity:post_tweet"
     createdAt: v.number(),
   }).index("by_context", ["context"]),
+
+  // Generated images
+  generatedImages: defineTable({
+    prompt: v.string(),
+    storageId: v.id("_storage"),
+    createdAt: v.number(),
+    activityName: v.optional(v.string()),
+  }).index("by_time", ["createdAt"]),
 });

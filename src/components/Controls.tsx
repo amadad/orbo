@@ -2,6 +2,7 @@ import { useMutation, useAction } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import type { Doc } from "../../convex/_generated/dataModel";
 import { useState } from "react";
+import { Flex, Button, Text, Box, Spinner } from "@radix-ui/themes";
 
 interface ControlsProps {
   being: Doc<"beingState">;
@@ -27,49 +28,53 @@ export function Controls({ being }: ControlsProps) {
   };
 
   return (
-    <div className="flex items-center gap-3">
+    <Flex align="center" gap="3">
       {/* Status indicator */}
-      <div className="flex items-center gap-2">
-        <div
-          className={`w-2 h-2 rounded-full ${
-            being.paused ? "bg-zinc-500" : "bg-green-500 animate-pulse"
-          }`}
+      <Flex align="center" gap="2">
+        <Box
+          width="8px"
+          height="8px"
+          style={{
+            borderRadius: "50%",
+            background: being.paused ? "var(--gray-8)" : "var(--green-9)",
+            animation: being.paused ? "none" : "pulse 2s infinite",
+          }}
         />
-        <span className="text-sm text-zinc-400">
+        <Text size="2" color="gray">
           {being.paused ? "Paused" : "Running"}
-        </span>
-      </div>
+        </Text>
+      </Flex>
 
       {/* Trigger button */}
-      <button
+      <Button
+        variant="soft"
+        color="gray"
+        size="2"
         onClick={handleTrigger}
         disabled={isTriggering || being.paused}
-        className="px-3 py-1.5 text-sm rounded-lg bg-zinc-800 hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
       >
         {isTriggering ? (
-          <>
-            <div className="w-3 h-3 border-2 border-zinc-500 border-t-zinc-300 rounded-full animate-spin" />
+          <Flex align="center" gap="2">
+            <Spinner size="1" />
             Running...
-          </>
+          </Flex>
         ) : (
           <>
             <span>⚡</span>
             Trigger
           </>
         )}
-      </button>
+      </Button>
 
       {/* Play/Pause button */}
-      <button
+      <Button
+        color={being.paused ? "green" : "gray"}
+        variant={being.paused ? "solid" : "soft"}
+        size="2"
         onClick={handleToggle}
-        className={`px-4 py-1.5 text-sm rounded-lg font-medium transition-colors ${
-          being.paused
-            ? "bg-green-600 hover:bg-green-500 text-white"
-            : "bg-zinc-800 hover:bg-zinc-700 text-zinc-300"
-        }`}
       >
         {being.paused ? "▶ Start" : "⏸ Pause"}
-      </button>
-    </div>
+      </Button>
+    </Flex>
   );
 }

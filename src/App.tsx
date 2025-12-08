@@ -1,8 +1,8 @@
-import { useQuery, useMutation } from "convex/react";
+import { useQuery } from "convex/react";
 import { api } from "../convex/_generated/api";
-import { useState } from "react";
 import { Dashboard } from "./components/Dashboard";
 import { Onboarding } from "./components/Onboarding";
+import { Box, Flex, Spinner, Text } from "@radix-ui/themes";
 
 export function App() {
   const being = useQuery(api.being.get);
@@ -10,12 +10,14 @@ export function App() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
-        <div className="text-zinc-400 flex items-center gap-3">
-          <div className="w-5 h-5 border-2 border-zinc-600 border-t-zinc-300 rounded-full animate-spin" />
-          Loading...
-        </div>
-      </div>
+      <Box style={{ minHeight: "100vh", background: "var(--gray-1)" }}>
+        <Flex align="center" justify="center" style={{ minHeight: "100vh" }}>
+          <Flex align="center" gap="3">
+            <Spinner size="2" />
+            <Text color="gray">Loading...</Text>
+          </Flex>
+        </Flex>
+      </Box>
     );
   }
 

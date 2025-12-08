@@ -147,6 +147,24 @@ export const recordExecution = mutation({
   },
 });
 
+// Reset cooldown for an activity (for testing/admin)
+export const resetCooldown = mutation({
+  args: {
+    name: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const activity = await ctx.db
+      .query("activities")
+      .withIndex("by_name", (q) => q.eq("name", args.name))
+      .first();
+
+    if (!activity) throw new Error(`Activity not found: ${args.name}`);
+
+    await ctx.db.patch(activity._id, { lastExecutedAt: undefined });
+    return true;
+  },
+});
+
 // Get activity history
 export const getHistory = query({
   args: {
