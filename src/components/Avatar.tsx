@@ -1,4 +1,4 @@
-import { Box } from "@radix-ui/themes";
+import { motion } from "framer-motion";
 import { useMemo } from "react";
 
 interface AvatarProps {
@@ -19,30 +19,13 @@ const moodGradients: Record<string, { from: string; to: string }> = {
 };
 
 export function Avatar({ mood, energy, name, size = 200 }: AvatarProps) {
-  const gradient = moodGradients[mood] || moodGradients.neutral;
+  const gradient = moodGradients[mood] ?? moodGradients.neutral!;
 
-  // Animation speed based on energy (more energy = faster bounce)
-  const animationDuration = useMemo(() => {
-    // Range from 3s (low energy) to 1s (high energy)
-    return 3 - (energy * 2);
-  }, [energy]);
-
-  // Bounce amplitude based on energy
-  const bounceAmount = useMemo(() => {
-    // Range from 2px (low energy) to 15px (high energy)
-    return Math.max(2, energy * 15);
-  }, [energy]);
-
-  // Pulse scale based on mood
-  const pulseScale = useMemo(() => {
-    if (mood === "creative" || mood === "happy") return 1.08;
-    if (mood === "curious") return 1.05;
-    if (mood === "tired") return 1.01;
-    return 1.03;
-  }, [mood]);
+  // Animation derived from energy
+  const breatheDuration = useMemo(() => 4 - (energy * 2), [energy]); // 4s (low) to 2s (high)
 
   return (
-    <Box
+    <div
       style={{
         position: "relative",
         width: size,
@@ -52,74 +35,96 @@ export function Avatar({ mood, energy, name, size = 200 }: AvatarProps) {
         justifyContent: "center",
       }}
     >
-      {/* Outer glow */}
-      <Box
+      {/* Strong Outer Haze */}
+      <motion.div
+        animate={{
+          scale: [1, 1.4, 1],
+          opacity: [0.2, 0.4, 0.2],
+          rotate: [0, 90, 0],
+        }}
+        transition={{
+          duration: breatheDuration * 1.5,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+        style={{
+          position: "absolute",
+          width: size * 1.1,
+          height: size * 1.1,
+          borderRadius: "50%",
+          background: `conic-gradient(from 0deg, ${gradient.from}00, ${gradient.to}40, ${gradient.from}00)`,
+          filter: "blur(30px)",
+        }}
+      />
+
+      {/* Pulse Aura */}
+      <motion.div
+        animate={{
+          scale: [1, 1.15, 1],
+          opacity: [0.3, 0.5, 0.3],
+        }}
+        transition={{
+          duration: breatheDuration,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
         style={{
           position: "absolute",
           width: size * 0.9,
           height: size * 0.9,
           borderRadius: "50%",
-          background: `radial-gradient(circle, ${gradient.from}40 0%, transparent 70%)`,
-          animation: `pulse ${animationDuration * 1.5}s ease-in-out infinite`,
+          background: `radial-gradient(circle, ${gradient.from}50 0%, transparent 70%)`,
+          filter: "blur(15px)",
         }}
       />
 
-      {/* Main avatar orb */}
-      <Box
+      {/* Main Orb */}
+      <motion.div
+        animate={{
+          y: [-10, 10, -10],
+          scale: [1, 1.05, 1],
+        }}
+        transition={{
+          y: {
+            duration: breatheDuration * 1.5,
+            repeat: Infinity,
+            ease: "easeInOut",
+          },
+          scale: {
+            duration: breatheDuration,
+            repeat: Infinity,
+            ease: "easeInOut",
+          },
+        }}
         style={{
-          width: size * 0.7,
-          height: size * 0.7,
+          width: size * 0.75,
+          height: size * 0.75,
           borderRadius: "50%",
           background: `linear-gradient(135deg, ${gradient.from} 0%, ${gradient.to} 100%)`,
           boxShadow: `
-            0 0 ${size * 0.2}px ${gradient.from}60,
-            0 0 ${size * 0.4}px ${gradient.from}30,
-            inset 0 -${size * 0.05}px ${size * 0.1}px rgba(0,0,0,0.3),
-            inset 0 ${size * 0.05}px ${size * 0.1}px rgba(255,255,255,0.2)
+            0 0 ${size * 0.1}px ${gradient.from}80,
+            inset 0 -${size * 0.1}px ${size * 0.2}px rgba(0,0,0,0.2),
+            inset 0 ${size * 0.1}px ${size * 0.2}px rgba(255,255,255,0.4)
           `,
-          animation: `bounce ${animationDuration}s ease-in-out infinite`,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
         }}
       >
-        {/* Inner highlight */}
-        <Box
+        {/* Specular Highlight - fixed to look like a glossy surface */}
+        <div
           style={{
+            position: "absolute",
+            top: "20%",
+            left: "20%",
             width: "30%",
             height: "30%",
             borderRadius: "50%",
-            background: "rgba(255,255,255,0.3)",
-            transform: "translate(-30%, -30%)",
-            filter: "blur(8px)",
+            background: "radial-gradient(circle at center, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%)",
+            filter: "blur(5px)",
           }}
         />
-      </Box>
-
-      {/* CSS Animations */}
-      <style>
-        {`
-          @keyframes bounce {
-            0%, 100% {
-              transform: translateY(0) scale(1);
-            }
-            50% {
-              transform: translateY(-${bounceAmount}px) scale(${pulseScale});
-            }
-          }
-
-          @keyframes pulse {
-            0%, 100% {
-              opacity: 0.6;
-              transform: scale(1);
-            }
-            50% {
-              opacity: 1;
-              transform: scale(1.1);
-            }
-          }
-        `}
-      </style>
-    </Box>
+      </motion.div>
+    </div>
   );
 }

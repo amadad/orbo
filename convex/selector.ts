@@ -39,6 +39,11 @@ export const selectNext = query({
     const weights = available.map((activity) => {
       let weight = 1.0;
 
+      // Strongly penalize rest when energy is high
+      if (activity.energyCost < 0 && being.energy > 0.5) {
+        weight *= 0.05; // 95% penalty - almost never rest when above 50% energy
+      }
+
       // Energy-based weighting (prefer low-cost when tired)
       if (being.energy < 0.3) {
         weight *= 1.0 - activity.energyCost;

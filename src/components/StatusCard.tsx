@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { Card, Flex, Text, Box } from "@radix-ui/themes";
+import { Flex, Text, Box } from "@radix-ui/themes";
+import { motion } from "framer-motion";
 
 interface StatusCardProps {
   label: string;
@@ -10,36 +11,50 @@ interface StatusCardProps {
 }
 
 const colorStyles = {
-  green: { background: "linear-gradient(135deg, var(--green-3), var(--green-2))", borderColor: "var(--green-6)" },
-  yellow: { background: "linear-gradient(135deg, var(--yellow-3), var(--yellow-2))", borderColor: "var(--yellow-6)" },
-  red: { background: "linear-gradient(135deg, var(--red-3), var(--red-2))", borderColor: "var(--red-6)" },
-  blue: { background: "linear-gradient(135deg, var(--blue-3), var(--blue-2))", borderColor: "var(--blue-6)" },
-  purple: { background: "linear-gradient(135deg, var(--violet-3), var(--violet-2))", borderColor: "var(--violet-6)" },
+  green: { from: "var(--green-3)", to: "var(--green-2)", border: "var(--green-6)" },
+  yellow: { from: "var(--yellow-3)", to: "var(--yellow-2)", border: "var(--yellow-6)" },
+  red: { from: "var(--red-3)", to: "var(--red-2)", border: "var(--red-6)" },
+  blue: { from: "var(--blue-3)", to: "var(--blue-2)", border: "var(--blue-6)" },
+  purple: { from: "var(--violet-3)", to: "var(--violet-2)", border: "var(--violet-6)" },
 };
 
 export function StatusCard({ label, value, icon, color, children }: StatusCardProps) {
+  const styles = colorStyles[color];
+
   return (
-    <Card
-      size="3"
+    <motion.div
+      whileHover={{ y: -4, scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
       style={{
-        background: colorStyles[color].background,
-        borderColor: colorStyles[color].borderColor,
-        borderWidth: 1,
-        borderStyle: "solid",
+        background: `linear-gradient(135deg, ${styles.from}, ${styles.to})`,
+        border: `1px solid ${styles.border}`,
+        borderRadius: 24,
+        padding: 24,
+        position: "relative",
+        overflow: "hidden",
+        boxShadow: "0 4px 20px rgba(0,0,0,0.02)",
       }}
     >
       <Flex justify="between" align="start">
         <Box>
-          <Text size="2" color="gray" mb="1" style={{ display: "block" }}>
+          <Text size="2" weight="medium" style={{ display: "block", color: "var(--gray-11)", textTransform: "uppercase", letterSpacing: "0.05em", fontSize: 11 }}>
             {label}
           </Text>
-          <Text size="6" weight="bold" style={{ textTransform: "capitalize" }}>
+          <Text size="6" weight="bold" style={{ textTransform: "capitalize", letterSpacing: "-0.02em", color: "var(--gray-12)" }}>
             {value}
           </Text>
         </Box>
-        <Text size="6">{icon}</Text>
+        <Box
+          style={{
+            fontSize: 32,
+            opacity: 0.8,
+            filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.1))"
+          }}
+        >
+          {icon}
+        </Box>
       </Flex>
       {children}
-    </Card>
+    </motion.div>
   );
 }
