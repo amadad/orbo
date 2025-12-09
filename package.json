@@ -1,7 +1,7 @@
 {
   "name": "orbo",
   "version": "1.0.0",
-  "description": "Autonomous digital being framework - TypeScript + Convex + TanStack AI",
+  "description": "Autonomous digital being framework - React + Convex + ShaderGradient",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -21,14 +21,14 @@
     "@radix-ui/react-tabs": "^1.1.13",
     "@radix-ui/react-tooltip": "^1.2.8",
     "@radix-ui/themes": "^3.2.1",
-    "@tanstack/react-query": "^5.90.12",
-    "autoprefixer": "^10.4.22",
+    "@react-three/fiber": "^9.4.2",
+    "@shadergradient/react": "^2.4.20",
     "convex": "^1.30.0",
     "framer-motion": "^12.23.25",
-    "postcss": "^8.5.6",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
-    "tailwindcss": "^4.1.17"
+    "tailwindcss": "^4.1.17",
+    "three": "^0.181.2"
   },
   "devDependencies": {
     "@types/bun": "^1.3.4",

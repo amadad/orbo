@@ -54,19 +54,18 @@ export function Controls({ being }: ControlsProps) {
         onClick={handleTrigger}
         disabled={isTriggering || being.paused}
         style={{
-          background: isTriggering || being.paused ? "rgba(255,255,255,0.1)" : "white",
-          border: isTriggering || being.paused ? "1px solid rgba(255,255,255,0.1)" : "1px solid var(--gray-4)",
+          background: "transparent",
+          border: isTriggering || being.paused ? "1px solid var(--gray-6)" : "1px solid var(--gray-8)",
           borderRadius: 999,
           padding: "6px 16px",
           display: "flex",
           alignItems: "center",
           gap: 6,
           cursor: isTriggering || being.paused ? "not-allowed" : "pointer",
-          opacity: 1, // Keep opacity high for legibility
-          color: isTriggering || being.paused ? "rgba(255,255,255,0.5)" : "var(--gray-12)",
+          opacity: isTriggering || being.paused ? 0.5 : 1,
+          color: isTriggering || being.paused ? "var(--gray-9)" : "var(--gray-11)",
           fontSize: 13,
           fontWeight: 500,
-          boxShadow: isTriggering || being.paused ? "none" : "0 2px 4px rgba(0,0,0,0.05)"
         }}
       >
         {isTriggering ? (

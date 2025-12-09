@@ -2,13 +2,14 @@
 
 ## Overview
 
-Orbo is an autonomous digital being that pursues objectives through personality-driven activity selection. Built with TypeScript, Convex, React, and Tailwind.
+Orbo is an autonomous digital being that pursues objectives through personality-driven activity selection. Built with React, Convex, and ShaderGradient for 3D visuals.
 
 ## Tech Stack
 
-- **Frontend**: React 19 + Vite + Tailwind CSS
+- **Frontend**: React 19 + Vite + Tailwind CSS + Radix UI
 - **Backend**: Convex (database, crons, real-time subscriptions)
-- **LLM**: OpenAI via TanStack AI
+- **LLM**: Google Generative AI (Gemini)
+- **3D Avatar**: ShaderGradient + Three.js
 - **Runtime**: Bun
 
 ## Project Structure
@@ -18,25 +19,26 @@ orbo/
 ├── convex/                 # Backend (Convex functions)
 │   ├── schema.ts          # Database tables
 │   ├── being.ts           # Being state (mood, energy, personality)
-│   ├── memory.ts          # Short-term & long-term memory
-│   ├── activities.ts      # Activity CRUD
+│   ├── memory.ts          # Short-term memory
+│   ├── activities.ts      # Activity queries and execution recording
 │   ├── selector.ts        # Personality-weighted activity selection
 │   ├── loop.ts            # Main execution loop (cron-triggered)
 │   ├── crons.ts           # Scheduled jobs
 │   ├── activityRunner.ts  # Activity execution + LLM calls
-│   ├── skills.ts          # Skill/API management
+│   ├── skills.ts          # Skill queries
 │   └── seed.ts            # Initialization
 ├── src/                    # Frontend (React)
 │   ├── App.tsx            # Main component
 │   ├── main.tsx           # Entry + Convex provider
 │   ├── index.css          # Tailwind styles
+│   ├── utils/
+│   │   └── format.ts      # Shared formatting utilities
 │   └── components/
-│       ├── Dashboard.tsx  # Real-time dashboard
+│       ├── Avatar.tsx     # 3D ShaderGradient avatar
+│       ├── VisualDashboard.tsx  # Main visual view
+│       ├── Dashboard.tsx  # Detailed dashboard
 │       ├── Onboarding.tsx # Setup wizard
-│       ├── StatusCard.tsx
-│       ├── ActivityList.tsx
-│       ├── MemoryFeed.tsx
-│       └── Controls.tsx
+│       └── Controls.tsx   # Pause/trigger controls
 ├── index.html
 ├── convex.json            # Convex project config
 ├── vite.config.ts
@@ -57,9 +59,8 @@ orbo/
 - Execution recorded in history with success/error status
 
 ### Memory System
-- **Short-term**: Recent 100 memories (activity results, thoughts, observations)
-- **Long-term**: Consolidated summaries by category
-- Automatic consolidation when short-term exceeds threshold
+- **Short-term**: Recent memories (activity results, thoughts, observations)
+- Stored with type, content, and importance
 
 ### Cron Jobs
 - `main-loop`: Every 5 minutes - selects and executes an activity
@@ -80,35 +81,16 @@ bun run deploy       # Deploy Convex + build
 ```bash
 bunx convex dev                              # Dev server + type generation
 bunx convex deploy                           # Deploy to production
-bunx convex env set OPENAI_API_KEY sk-...   # Set environment variable
+bunx convex env set GOOGLE_GENERATIVE_AI_API_KEY ...   # Set environment variable
 bunx convex run seed:initialize '{"name":"Orbo","primaryObjective":"..."}'
 bunx convex run seed:reset                   # Clear all data
 bunx convex run loop:triggerNow              # Manual activity trigger
 ```
 
-## Adding Activities
-
-1. Register in database:
-```typescript
-await convex.mutation(api.activities.register, {
-  name: "my_activity",
-  description: "What it does",
-  energyCost: 0.2,
-  cooldownMs: 3600000, // 1 hour
-  requiredSkills: ["chat"],
-});
-```
-
-2. Add handler in `convex/activityRunner.ts`:
-```typescript
-case "my_activity":
-  return await runMyActivity(beingState, memoryContext);
-```
-
 ## Environment Variables
 
 ### Convex (set via `bunx convex env set`)
-- `OPENAI_API_KEY` - Required for LLM activities
+- `GOOGLE_GENERATIVE_AI_API_KEY` - Required for LLM activities
 
 ### Frontend (.env.local)
 - `VITE_CONVEX_URL` - Auto-set by `bunx convex dev`
@@ -121,9 +103,9 @@ case "my_activity":
 | `activities` | Activity definitions with cooldowns and requirements |
 | `activityHistory` | Execution log with results and energy changes |
 | `shortTermMemory` | Recent memories with type and importance |
-| `longTermMemory` | Consolidated memory summaries |
+| `longTermMemory` | Consolidated memory summaries (future use) |
 | `skills` | Available skills and their API key requirements |
-| `threads` | Agent conversation threads (for @convex-dev/agent) |
+| `generatedImages` | Stored images from generate_image activity |
 
 ## Convex Patterns Used
 
@@ -138,4 +120,4 @@ case "my_activity":
 - The `_generated` folder is created by `bunx convex dev`
 - Frontend uses Convex React hooks (`useQuery`, `useMutation`, `useAction`)
 - All state updates are real-time via Convex subscriptions
-- Python version archived in `python-archive` branch
+- Avatar uses ShaderGradient for mood/energy visualization

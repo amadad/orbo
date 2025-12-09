@@ -110,7 +110,6 @@ export function Onboarding() {
                 <Avatar
                   mood="neutral"
                   energy={0.8}
-                  name={name}
                   size={120}
                 />
                 <Box style={{ textAlign: "center" }}>

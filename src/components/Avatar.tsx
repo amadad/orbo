@@ -1,130 +1,95 @@
-import { motion } from "framer-motion";
+import { ShaderGradient, ShaderGradientCanvas } from "@shadergradient/react";
 import { useMemo } from "react";
 
 interface AvatarProps {
   mood: string;
   energy: number;
-  name: string;
   size?: number;
+  activity?: string;
 }
 
-// Mood to gradient color mapping
-const moodGradients: Record<string, { from: string; to: string }> = {
-  neutral: { from: "#8b5cf6", to: "#6366f1" },    // violet to indigo
-  curious: { from: "#06b6d4", to: "#3b82f6" },    // cyan to blue
-  creative: { from: "#f472b6", to: "#c084fc" },   // pink to purple
-  focused: { from: "#10b981", to: "#14b8a6" },    // emerald to teal
-  tired: { from: "#6b7280", to: "#9ca3af" },      // gray shades
-  happy: { from: "#fbbf24", to: "#f97316" },      // amber to orange
+// Mood to color palette mapping - rich, saturated colors for depth
+const moodColors = {
+  neutral: { color1: "#6366f1", color2: "#8b5cf6", color3: "#4f46e5" },    // rich indigo/violet
+  curious: { color1: "#06b6d4", color2: "#0ea5e9", color3: "#3b82f6" },    // vibrant cyan/blue
+  creative: { color1: "#ec4899", color2: "#d946ef", color3: "#a855f7" },   // vivid pink/purple
+  focused: { color1: "#10b981", color2: "#14b8a6", color3: "#06b6d4" },    // emerald/teal
+  tired: { color1: "#6366f1", color2: "#4338ca", color3: "#3730a3" },      // deep indigo
+  happy: { color1: "#f59e0b", color2: "#f97316", color3: "#eab308" },      // warm amber/orange
+} as const;
+
+const defaultColors = moodColors.neutral;
+
+// Activity modifies the shader behavior - keep values subtle for more spherical shape
+const activityEffects: Record<string, { uStrength: number; uDensity: number }> = {
+  rest: { uStrength: 0.2, uDensity: 0.8 },
+  daily_thought: { uStrength: 0.3, uDensity: 1.0 },
+  research_topic: { uStrength: 0.4, uDensity: 1.1 },
+  generate_image: { uStrength: 0.5, uDensity: 1.2 },
+  analyze_day: { uStrength: 0.3, uDensity: 1.0 },
 };
 
-export function Avatar({ mood, energy, name, size = 200 }: AvatarProps) {
-  const gradient = moodGradients[mood] ?? moodGradients.neutral!;
+export function Avatar({ mood, energy, size = 280, activity }: AvatarProps) {
+  const colors = moodColors[mood as keyof typeof moodColors] ?? defaultColors;
+  const activityEffect = activityEffects[activity || ""] || { uStrength: 0.4, uDensity: 1.0 };
 
-  // Animation derived from energy
-  const breatheDuration = useMemo(() => 4 - (energy * 2), [energy]); // 4s (low) to 2s (high)
+  // Animation speed based on energy (subtle range)
+  const animationSpeed = useMemo(() => {
+    return 0.1 + (energy * 0.2);
+  }, [energy]);
+
+  // Wave amplitude based on energy (keep very subtle for spherical shape)
+  const amplitude = useMemo(() => {
+    return 0.3 + (energy * 0.3);
+  }, [energy]);
 
   return (
     <div
       style={{
-        position: "relative",
         width: size,
         height: size,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
+        position: "relative",
       }}
     >
-      {/* Strong Outer Haze */}
-      <motion.div
-        animate={{
-          scale: [1, 1.4, 1],
-          opacity: [0.2, 0.4, 0.2],
-          rotate: [0, 90, 0],
-        }}
-        transition={{
-          duration: breatheDuration * 1.5,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
+      <ShaderGradientCanvas
         style={{
           position: "absolute",
-          width: size * 1.1,
-          height: size * 1.1,
-          borderRadius: "50%",
-          background: `conic-gradient(from 0deg, ${gradient.from}00, ${gradient.to}40, ${gradient.from}00)`,
-          filter: "blur(30px)",
-        }}
-      />
-
-      {/* Pulse Aura */}
-      <motion.div
-        animate={{
-          scale: [1, 1.15, 1],
-          opacity: [0.3, 0.5, 0.3],
-        }}
-        transition={{
-          duration: breatheDuration,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-        style={{
-          position: "absolute",
-          width: size * 0.9,
-          height: size * 0.9,
-          borderRadius: "50%",
-          background: `radial-gradient(circle, ${gradient.from}50 0%, transparent 70%)`,
-          filter: "blur(15px)",
-        }}
-      />
-
-      {/* Main Orb */}
-      <motion.div
-        animate={{
-          y: [-10, 10, -10],
-          scale: [1, 1.05, 1],
-        }}
-        transition={{
-          y: {
-            duration: breatheDuration * 1.5,
-            repeat: Infinity,
-            ease: "easeInOut",
-          },
-          scale: {
-            duration: breatheDuration,
-            repeat: Infinity,
-            ease: "easeInOut",
-          },
-        }}
-        style={{
-          width: size * 0.75,
-          height: size * 0.75,
-          borderRadius: "50%",
-          background: `linear-gradient(135deg, ${gradient.from} 0%, ${gradient.to} 100%)`,
-          boxShadow: `
-            0 0 ${size * 0.1}px ${gradient.from}80,
-            inset 0 -${size * 0.1}px ${size * 0.2}px rgba(0,0,0,0.2),
-            inset 0 ${size * 0.1}px ${size * 0.2}px rgba(255,255,255,0.4)
-          `,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          pointerEvents: "none",
         }}
       >
-        {/* Specular Highlight - fixed to look like a glossy surface */}
-        <div
-          style={{
-            position: "absolute",
-            top: "20%",
-            left: "20%",
-            width: "30%",
-            height: "30%",
-            borderRadius: "50%",
-            background: "radial-gradient(circle at center, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%)",
-            filter: "blur(5px)",
-          }}
+        <ShaderGradient
+          type="sphere"
+          animate="on"
+          uSpeed={animationSpeed}
+          uStrength={activityEffect.uStrength}
+          uDensity={activityEffect.uDensity}
+          uFrequency={4}
+          uAmplitude={amplitude}
+          positionX={0}
+          positionY={0}
+          positionZ={0}
+          rotationX={0}
+          rotationY={0}
+          rotationZ={0}
+          color1={colors.color1}
+          color2={colors.color2}
+          color3={colors.color3}
+          reflection={0.8}
+          wireframe={false}
+          cAzimuthAngle={180}
+          cPolarAngle={80}
+          cDistance={1.4}
+          cameraZoom={2.5}
+          lightType="3d"
+          brightness={1.6}
+          grain="off"
+          envPreset="lobby"
         />
-      </motion.div>
+      </ShaderGradientCanvas>
     </div>
   );
 }

@@ -1,47 +1,5 @@
-import { mutation, query, action } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-import { api } from "./_generated/api";
-
-// Register a new activity
-export const register = mutation({
-  args: {
-    name: v.string(),
-    description: v.string(),
-    energyCost: v.float64(),
-    cooldownMs: v.number(),
-    requiredSkills: v.array(v.string()),
-  },
-  handler: async (ctx, args) => {
-    // Check if activity already exists
-    const existing = await ctx.db
-      .query("activities")
-      .withIndex("by_name", (q) => q.eq("name", args.name))
-      .first();
-
-    if (existing) {
-      // Update existing
-      await ctx.db.patch(existing._id, {
-        description: args.description,
-        energyCost: args.energyCost,
-        cooldownMs: args.cooldownMs,
-        requiredSkills: args.requiredSkills,
-      });
-      return existing._id;
-    }
-
-    // Create new
-    return await ctx.db.insert("activities", {
-      name: args.name,
-      description: args.description,
-      energyCost: args.energyCost,
-      cooldownMs: args.cooldownMs,
-      enabled: true,
-      requiredSkills: args.requiredSkills,
-      lastExecutedAt: undefined,
-      executionCount: 0,
-    });
-  },
-});
 
 // Get all activities
 export const list = query({
@@ -85,25 +43,6 @@ export const getAvailable = query({
   },
 });
 
-// Enable/disable an activity
-export const setEnabled = mutation({
-  args: {
-    name: v.string(),
-    enabled: v.boolean(),
-  },
-  handler: async (ctx, args) => {
-    const activity = await ctx.db
-      .query("activities")
-      .withIndex("by_name", (q) => q.eq("name", args.name))
-      .first();
-
-    if (!activity) throw new Error(`Activity not found: ${args.name}`);
-
-    await ctx.db.patch(activity._id, { enabled: args.enabled });
-    return args.enabled;
-  },
-});
-
 // Record activity execution
 export const recordExecution = mutation({
   args: {
@@ -144,24 +83,6 @@ export const recordExecution = mutation({
         executionCount: activity.executionCount + 1,
       });
     }
-  },
-});
-
-// Reset cooldown for an activity (for testing/admin)
-export const resetCooldown = mutation({
-  args: {
-    name: v.string(),
-  },
-  handler: async (ctx, args) => {
-    const activity = await ctx.db
-      .query("activities")
-      .withIndex("by_name", (q) => q.eq("name", args.name))
-      .first();
-
-    if (!activity) throw new Error(`Activity not found: ${args.name}`);
-
-    await ctx.db.patch(activity._id, { lastExecutedAt: undefined });
-    return true;
   },
 });
 

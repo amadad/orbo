@@ -14,6 +14,7 @@ import {
   IconButton,
 } from "@radix-ui/themes";
 import { motion } from "framer-motion";
+import { formatTimeAgo, getMemoryColor, getMoodEmoji } from "../utils/format";
 
 interface VisualDashboardProps {
   being: Doc<"beingState">;
@@ -106,128 +107,97 @@ export function VisualDashboard({ being, onOpenDetails }: VisualDashboardProps) 
           <Avatar
             mood={being.mood}
             energy={being.energy}
-            name={being.name}
-            size={260}
+            size={400}
+            activity={latestActivity?.activityName}
           />
         </motion.div>
 
-        {/* Status Text */}
+        {/* Status: Mood + Energy + Current Activity */}
         <motion.div variants={itemVariants}>
-          <Flex direction="column" align="center" gap="1">
+          <Flex direction="column" align="center" gap="2">
             <Text size="6" weight="medium" style={{ letterSpacing: "-0.01em" }}>
               {getMoodEmoji(being.mood)} {being.mood}
             </Text>
-            <Text size="2" color="gray" style={{ opacity: 0.8 }}>
-              {Math.round(being.energy * 100)}% energy
-            </Text>
+            <Flex align="center" gap="3">
+              <Text size="2" color="gray">{Math.round(being.energy * 100)}% energy</Text>
+              {latestActivity && (
+                <>
+                  <Text size="2" color="gray">·</Text>
+                  <Flex
+                    align="center"
+                    gap="2"
+                    onClick={() => setShowActivity(true)}
+                    style={{ cursor: "pointer" }}
+                  >
+                    <Box
+                      style={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: "50%",
+                        background: latestActivity.success ? "var(--green-9)" : "var(--red-9)",
+                      }}
+                    />
+                    <Text size="2" weight="medium" style={{ color: "var(--gray-11)" }}>
+                      {latestActivity.activityName?.replace(/_/g, " ")}
+                    </Text>
+                  </Flex>
+                </>
+              )}
+            </Flex>
           </Flex>
         </motion.div>
 
-        {/* Info Stack - clean vertical layout */}
-        <Flex
-          direction="column"
-          align="center"
-          gap="3"
-          style={{ width: "100%", maxWidth: 380, padding: "0 24px" }}
+        {/* Latest Memory - contextual display */}
+        <motion.div
+          variants={itemVariants}
+          whileHover={{ scale: 1.01 }}
+          onClick={() => setShowMemories(true)}
+          style={{
+            width: "100%",
+            maxWidth: 480,
+            padding: "0 24px",
+            cursor: "pointer",
+          }}
         >
-          {/* Latest Thought - clean quote card */}
-          <motion.div
-            variants={itemVariants}
-            whileHover={{ scale: 1.01 }}
-            whileTap={{ scale: 0.99 }}
-            onClick={() => setShowMemories(true)}
-            style={{
-              width: "100%",
-              background: "var(--gray-2)",
-              borderRadius: 12,
-              padding: "16px 20px",
-              cursor: "pointer",
-            }}
+          <Flex
+            direction="column"
+            gap="3"
+            style={{ background: "var(--gray-2)", borderRadius: 16, padding: 20 }}
           >
-            <Text
-              size="2"
-              style={{
-                display: "-webkit-box",
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: "vertical",
-                overflow: "hidden",
-                lineHeight: 1.5,
-                color: "var(--gray-11)",
-              }}
-            >
-              {latestMemory?.content || "No thoughts yet..."}
-            </Text>
-            <Text size="1" color="gray" style={{ display: "block", marginTop: 6, opacity: 0.6 }}>
-              {latestMemory ? formatTimeAgo(latestMemory.createdAt) : ""}
-            </Text>
-          </motion.div>
-
-          {/* Activity + Image in one row */}
-          <Flex gap="3" align="center" style={{ width: "100%" }}>
-            {/* Activity badge */}
-            <motion.div
-              variants={itemVariants}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => setShowActivity(true)}
-              style={{
-                flex: 1,
-                background: "var(--gray-2)",
-                borderRadius: 12,
-                padding: "12px 16px",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-              }}
-            >
+            {/* If this memory is about image generation, show the image */}
+            {latestMemory?.content?.toLowerCase().includes("created an image") && latestImage?.url && (
               <Box
                 style={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: "50%",
-                  background: latestActivity?.success ? "var(--green-9)" : latestActivity ? "var(--red-9)" : "var(--gray-6)",
-                  flexShrink: 0,
+                  width: "100%",
+                  borderRadius: 12,
+                  overflow: "hidden",
                 }}
-              />
-              <Text size="2" style={{ opacity: 0.8 }}>
-                {latestActivity?.activityName?.replace(/_/g, " ") || "idle"}
-              </Text>
-            </motion.div>
-
-            {/* Image thumbnail - always same size slot */}
-            <motion.div
-              variants={itemVariants}
-              whileHover={{ scale: 1.05 }}
-              style={{
-                width: 56,
-                height: 56,
-                borderRadius: 10,
-                overflow: "hidden",
-                background: "var(--gray-3)",
-                flexShrink: 0,
-                cursor: latestImage?.url ? "pointer" : "default",
-              }}
-            >
-              {latestImage?.url ? (
+              >
                 <img
                   src={latestImage.url}
                   alt={latestImage.prompt}
                   style={{
                     width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
+                    height: "auto",
                     display: "block"
                   }}
                 />
-              ) : (
-                <Flex align="center" justify="center" style={{ width: "100%", height: "100%" }}>
-                  <Text size="1" color="gray" style={{ opacity: 0.4 }}>🖼</Text>
-                </Flex>
+              </Box>
+            )}
+
+            {/* Memory text */}
+            <Flex direction="column" gap="1">
+              <Text size="3" style={{ lineHeight: 1.6 }}>
+                {latestMemory?.content || "Waiting for first thought..."}
+              </Text>
+              {latestMemory && (
+                <Text size="1" color="gray">
+                  {formatTimeAgo(latestMemory.createdAt)}
+                </Text>
               )}
-            </motion.div>
+            </Flex>
           </Flex>
-        </Flex>
+        </motion.div>
 
       </Flex>
 
@@ -312,32 +282,3 @@ export function VisualDashboard({ being, onOpenDetails }: VisualDashboardProps) 
   );
 }
 
-function getMoodEmoji(mood: string): string {
-  const emojis: Record<string, string> = {
-    neutral: "😐",
-    curious: "🤔",
-    creative: "✨",
-    focused: "🎯",
-    tired: "😴",
-    happy: "😊",
-  };
-  return emojis[mood] || "🤖";
-}
-
-function getMemoryColor(type: string): "blue" | "violet" | "green" | "yellow" | "gray" {
-  const colors: Record<string, "blue" | "violet" | "green" | "yellow" | "gray"> = {
-    activity: "blue",
-    thought: "violet",
-    observation: "green",
-    interaction: "yellow",
-  };
-  return colors[type] ?? "gray";
-}
-
-function formatTimeAgo(timestamp: number): string {
-  const seconds = Math.floor((Date.now() - timestamp) / 1000);
-  if (seconds < 60) return "now";
-  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
-  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
-  return `${Math.floor(seconds / 86400)}d ago`;
-}

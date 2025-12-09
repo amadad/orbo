@@ -103,22 +103,3 @@ export const setPaused = mutation({
   },
 });
 
-// Update objectives
-export const updateObjectives = mutation({
-  args: {
-    primary: v.optional(v.string()),
-    secondary: v.optional(v.array(v.string())),
-  },
-  handler: async (ctx, args) => {
-    const being = await ctx.db.query("beingState").first();
-    if (!being) throw new Error("Being not initialized");
-
-    const objectives = {
-      primary: args.primary ?? being.objectives.primary,
-      secondary: args.secondary ?? being.objectives.secondary,
-    };
-
-    await ctx.db.patch(being._id, { objectives });
-    return objectives;
-  },
-});

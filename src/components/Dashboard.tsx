@@ -7,13 +7,11 @@ import {
   Flex,
   Text,
   Avatar,
-  Card,
   Badge,
   Progress,
-  IconButton,
-  Tooltip,
   ScrollArea,
 } from "@radix-ui/themes";
+import { formatTimeAgo, getMemoryColor } from "../utils/format";
 
 interface DashboardProps {
   being: Doc<"beingState">;
@@ -25,6 +23,7 @@ export function Dashboard({ being }: DashboardProps) {
   const recentMemories = useQuery(api.memory.getRecent, { limit: 20 }) ?? [];
   const history = useQuery(api.activities.getHistory, { limit: 5 }) ?? [];
   const recentImages = useQuery(api.activityRunner.getRecentImages, { limit: 4 }) ?? [];
+  // Note: activities.list is kept for showing total count, availableActivities for filtering
 
   return (
     <Box
@@ -239,22 +238,4 @@ export function Dashboard({ being }: DashboardProps) {
       </Box>
     </Box>
   );
-}
-
-function getMemoryColor(type: string): "blue" | "violet" | "green" | "yellow" | "gray" {
-  const colors: Record<string, "blue" | "violet" | "green" | "yellow" | "gray"> = {
-    activity: "blue",
-    thought: "violet",
-    observation: "green",
-    interaction: "yellow",
-  };
-  return colors[type] ?? "gray";
-}
-
-function formatTimeAgo(timestamp: number): string {
-  const seconds = Math.floor((Date.now() - timestamp) / 1000);
-  if (seconds < 60) return "now";
-  if (seconds < 3600) return `${Math.floor(seconds / 60)}m`;
-  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h`;
-  return `${Math.floor(seconds / 86400)}d`;
 }
