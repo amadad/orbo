@@ -58,17 +58,6 @@ export default defineSchema({
   }).index("by_time", ["createdAt"])
     .index("by_type", ["type"]),
 
-  // Long-term memory - consolidated memories
-  longTermMemory: defineTable({
-    summary: v.string(),
-    category: v.string(),
-    sourceMemoryIds: v.array(v.id("shortTermMemory")),
-    consolidatedAt: v.number(),
-    accessCount: v.number(),
-    lastAccessedAt: v.number(),
-  }).index("by_category", ["category"])
-    .index("by_access", ["lastAccessedAt"]),
-
   // Skills configuration
   skills: defineTable({
     name: v.string(),
@@ -76,13 +65,6 @@ export default defineSchema({
     requiredApiKeys: v.array(v.string()),
     configuredAt: v.optional(v.number()),
   }).index("by_name", ["name"]),
-
-  // Threads for agent conversations (used by @convex-dev/agent)
-  threads: defineTable({
-    userId: v.optional(v.string()),
-    context: v.optional(v.string()), // e.g., "activity:post_tweet"
-    createdAt: v.number(),
-  }).index("by_context", ["context"]),
 
   // Generated images
   generatedImages: defineTable({

@@ -102,8 +102,7 @@ bunx convex run loop:triggerNow              # Manual activity trigger
 | `beingState` | Single row with mood, energy, personality, objectives |
 | `activities` | Activity definitions with cooldowns and requirements |
 | `activityHistory` | Execution log with results and energy changes |
-| `shortTermMemory` | Recent memories with type and importance |
-| `longTermMemory` | Consolidated memory summaries (future use) |
+| `shortTermMemory` | Recent memories with type and importance (auto-pruned at 100) |
 | `skills` | Available skills and their API key requirements |
 | `generatedImages` | Stored images from generate_image activity |
 

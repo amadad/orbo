@@ -1,8 +1,7 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-import type { MemoryType } from "./types";
 
-const MEMORY_TYPES = ["activity", "thought", "observation", "interaction"] as const;
+const MAX_SHORT_TERM_MEMORIES = 100;
 
 // Store a new short-term memory
 export const remember = mutation({
@@ -26,11 +25,19 @@ export const remember = mutation({
       importance: args.importance ?? 0.5,
     });
 
-    // Check if we need to consolidate (more than 100 short-term memories)
-    const count = await ctx.db.query("shortTermMemory").collect();
-    if (count.length > 100) {
-      // Schedule consolidation
-      // In a real implementation, this would trigger the consolidate function
+    // Prune old memories if we exceed the limit
+    const allMemories = await ctx.db
+      .query("shortTermMemory")
+      .withIndex("by_time")
+      .order("asc")
+      .collect();
+
+    if (allMemories.length > MAX_SHORT_TERM_MEMORIES) {
+      // Delete oldest memories, keeping the most recent MAX_SHORT_TERM_MEMORIES
+      const toDelete = allMemories.slice(0, allMemories.length - MAX_SHORT_TERM_MEMORIES);
+      for (const memory of toDelete) {
+        await ctx.db.delete(memory._id);
+      }
     }
 
     return memoryId;

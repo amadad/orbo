@@ -1,11 +1,10 @@
-import type { Doc, Id } from "./_generated/dataModel";
+import type { Doc } from "./_generated/dataModel";
 
 // Re-export generated types
 export type BeingState = Doc<"beingState">;
 export type Activity = Doc<"activities">;
 export type ActivityHistory = Doc<"activityHistory">;
 export type ShortTermMemory = Doc<"shortTermMemory">;
-export type LongTermMemory = Doc<"longTermMemory">;
 export type Skill = Doc<"skills">;
 
 // Activity execution context

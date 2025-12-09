@@ -44,9 +44,8 @@ export const initialize = mutation({
 
     // Create default skills
     const defaultSkills = [
-      { name: "chat", requiredApiKeys: ["OPENAI_API_KEY"] },
-      { name: "twitter", requiredApiKeys: ["TWITTER_BEARER_TOKEN"] },
-      { name: "image_generation", requiredApiKeys: ["OPENAI_API_KEY"] },
+      { name: "chat", requiredApiKeys: ["GOOGLE_GENERATIVE_AI_API_KEY"] },
+      { name: "image_generation", requiredApiKeys: ["GOOGLE_GENERATIVE_AI_API_KEY"] },
       { name: "web_scraping", requiredApiKeys: [] },
     ];
 
@@ -81,13 +80,6 @@ export const initialize = mutation({
         energyCost: -0.2, // Negative = energy gain
         cooldownMs: 30 * 60 * 1000, // 30 minutes
         requiredSkills: [],
-      },
-      {
-        name: "post_tweet",
-        description: "Generate and post a tweet based on current thoughts or objectives",
-        energyCost: 0.25,
-        cooldownMs: 60 * 60 * 1000, // 1 hour
-        requiredSkills: ["chat", "twitter"],
       },
       {
         name: "generate_image",
@@ -138,15 +130,13 @@ export const initialize = mutation({
 // Reset everything (for development)
 export const reset = mutation({
   handler: async (ctx) => {
-    // Delete all data
+    // Delete all data from tables
     const tables = [
       "beingState",
       "activities",
       "activityHistory",
       "shortTermMemory",
-      "longTermMemory",
       "skills",
-      "threads",
     ] as const;
 
     let deletedCount = 0;
@@ -157,6 +147,14 @@ export const reset = mutation({
         await ctx.db.delete(doc._id);
         deletedCount++;
       }
+    }
+
+    // Clean up generated images and their storage
+    const images = await ctx.db.query("generatedImages").collect();
+    for (const image of images) {
+      await ctx.storage.delete(image.storageId);
+      await ctx.db.delete(image._id);
+      deletedCount++;
     }
 
     return { deletedCount };
