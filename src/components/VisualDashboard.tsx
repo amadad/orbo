@@ -123,103 +123,124 @@ export function VisualDashboard({ being, onOpenDetails }: VisualDashboardProps) 
           </Flex>
         </motion.div>
 
-        {/* Quick Stats Row */}
-        <Flex gap="5" wrap="wrap" justify="center" style={{ maxWidth: 600, padding: "0 20px" }}>
-          {/* Latest Thought */}
+        {/* Info Stack - vertical layout below avatar */}
+        <Flex
+          direction="column"
+          align="center"
+          gap="4"
+          style={{ width: "100%", maxWidth: 420, padding: "0 24px" }}
+        >
+          {/* Latest Thought - full width, quote-style */}
           <motion.div
             variants={itemVariants}
-            whileHover={{ scale: 1.05, y: -5 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.01 }}
+            whileTap={{ scale: 0.99 }}
             onClick={() => setShowMemories(true)}
             style={{
-              background: "rgba(255, 255, 255, 0.1)",
-              backdropFilter: "blur(12px)",
-              borderRadius: 24,
-              padding: "16px 20px",
+              width: "100%",
+              background: "var(--gray-2)",
+              borderRadius: 16,
+              padding: "20px 24px",
               cursor: "pointer",
-              maxWidth: 200,
-              boxShadow: "0 8px 32px rgba(0,0,0,0.1)",
-              border: "1px solid rgba(255,255,255,0.1)",
+              position: "relative",
+              borderLeft: "3px solid var(--gray-5)",
             }}
           >
-            <Text size="1" weight="bold" style={{ display: "block", marginBottom: 6, textTransform: "uppercase", opacity: 0.7, color: "rgba(255,255,255,0.8)" }}>
-              💭 Latest Thought
+            <Text
+              size="2"
+              style={{
+                display: "-webkit-box",
+                WebkitLineClamp: 3,
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+                lineHeight: 1.6,
+                fontStyle: "italic",
+                color: "var(--gray-11)",
+              }}
+            >
+              "{latestMemory?.content || "No thoughts yet..."}"
             </Text>
-            <Text size="2" style={{
-              display: "-webkit-box",
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: "vertical",
-              overflow: "hidden",
-              lineHeight: 1.4,
-              color: "rgba(255,255,255,0.9)",
-            }}>
-              {latestMemory?.content || "No thoughts yet..."}
+            <Text size="1" color="gray" style={{ display: "block", marginTop: 8 }}>
+              {latestMemory ? formatTimeAgo(latestMemory.createdAt) : ""}
             </Text>
           </motion.div>
 
-          {/* Latest Activity */}
-          <motion.div
-            variants={itemVariants}
-            whileHover={{ scale: 1.05, y: -5 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setShowActivity(true)}
-            style={{
-              background: "rgba(255, 255, 255, 0.1)",
-              backdropFilter: "blur(12px)",
-              borderRadius: 24,
-              padding: "16px 20px",
-              cursor: "pointer",
-              maxWidth: 200,
-              boxShadow: "0 8px 32px rgba(0,0,0,0.1)",
-              border: "1px solid rgba(255,255,255,0.1)",
-            }}
-          >
-            <Text size="1" weight="bold" style={{ display: "block", marginBottom: 6, textTransform: "uppercase", opacity: 0.7, color: "rgba(255,255,255,0.8)" }}>
-              ⚡ Latest Activity
-            </Text>
-            <Flex align="center" gap="2">
-              <Text size="2" style={{ color: "rgba(255,255,255,0.9)" }}>{latestActivity?.activityName || "None yet"}</Text>
-              {latestActivity && (
-                <Box
-                  style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: "50%",
-                    background: latestActivity.success ? "var(--green-9)" : "var(--red-9)",
-                    boxShadow: latestActivity.success ? "0 0 8px var(--green-9)" : "none",
-                  }}
-                />
-              )}
-            </Flex>
-          </motion.div>
-
-          {/* Latest Generated Image (if any) */}
-          <AnimatePresence>
-            {latestImage?.url && (
-              <motion.div
-                variants={itemVariants}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                whileHover={{ scale: 1.1, rotate: 2 }}
+          {/* Activity + Image Row */}
+          <Flex gap="3" align="stretch" style={{ width: "100%" }}>
+            {/* Latest Activity - compact pill */}
+            <motion.div
+              variants={itemVariants}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setShowActivity(true)}
+              style={{
+                flex: 1,
+                background: "var(--gray-2)",
+                borderRadius: 12,
+                padding: "14px 18px",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: 12,
+              }}
+            >
+              <Box
                 style={{
-                  borderRadius: 20,
-                  overflow: "hidden",
-                  boxShadow: "0 10px 30px rgba(0,0,0,0.1)",
-                  maxWidth: 120,
-                  maxHeight: 120,
-                  border: "2px solid white",
-                  cursor: "zoom-in",
+                  width: 10,
+                  height: 10,
+                  borderRadius: "50%",
+                  background: latestActivity?.success ? "var(--green-9)" : latestActivity ? "var(--red-9)" : "var(--gray-6)",
+                  flexShrink: 0,
                 }}
-              >
-                <img
-                  src={latestImage.url}
-                  alt={latestImage.prompt}
-                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
+              />
+              <Flex direction="column" gap="0" style={{ minWidth: 0 }}>
+                <Text size="1" color="gray" style={{ textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                  Activity
+                </Text>
+                <Text
+                  size="2"
+                  weight="medium"
+                  style={{
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis"
+                  }}
+                >
+                  {latestActivity?.activityName?.replace(/_/g, " ") || "None yet"}
+                </Text>
+              </Flex>
+            </motion.div>
+
+            {/* Latest Generated Image */}
+            <AnimatePresence>
+              {latestImage?.url && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8, width: 0 }}
+                  animate={{ opacity: 1, scale: 1, width: 80 }}
+                  exit={{ opacity: 0, scale: 0.8, width: 0 }}
+                  whileHover={{ scale: 1.05 }}
+                  style={{
+                    height: 80,
+                    borderRadius: 12,
+                    overflow: "hidden",
+                    flexShrink: 0,
+                    cursor: "pointer",
+                  }}
+                >
+                  <img
+                    src={latestImage.url}
+                    alt={latestImage.prompt}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                      display: "block"
+                    }}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </Flex>
         </Flex>
 
       </Flex>
