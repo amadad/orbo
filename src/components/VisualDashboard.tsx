@@ -13,7 +13,7 @@ import {
   ScrollArea,
   IconButton,
 } from "@radix-ui/themes";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 interface VisualDashboardProps {
   being: Doc<"beingState">;
@@ -123,14 +123,14 @@ export function VisualDashboard({ being, onOpenDetails }: VisualDashboardProps) 
           </Flex>
         </motion.div>
 
-        {/* Info Stack - vertical layout below avatar */}
+        {/* Info Stack - clean vertical layout */}
         <Flex
           direction="column"
           align="center"
-          gap="4"
-          style={{ width: "100%", maxWidth: 420, padding: "0 24px" }}
+          gap="3"
+          style={{ width: "100%", maxWidth: 380, padding: "0 24px" }}
         >
-          {/* Latest Thought - full width, quote-style */}
+          {/* Latest Thought - clean quote card */}
           <motion.div
             variants={itemVariants}
             whileHover={{ scale: 1.01 }}
@@ -139,35 +139,32 @@ export function VisualDashboard({ being, onOpenDetails }: VisualDashboardProps) 
             style={{
               width: "100%",
               background: "var(--gray-2)",
-              borderRadius: 16,
-              padding: "20px 24px",
+              borderRadius: 12,
+              padding: "16px 20px",
               cursor: "pointer",
-              position: "relative",
-              borderLeft: "3px solid var(--gray-5)",
             }}
           >
             <Text
               size="2"
               style={{
                 display: "-webkit-box",
-                WebkitLineClamp: 3,
+                WebkitLineClamp: 2,
                 WebkitBoxOrient: "vertical",
                 overflow: "hidden",
-                lineHeight: 1.6,
-                fontStyle: "italic",
+                lineHeight: 1.5,
                 color: "var(--gray-11)",
               }}
             >
-              "{latestMemory?.content || "No thoughts yet..."}"
+              {latestMemory?.content || "No thoughts yet..."}
             </Text>
-            <Text size="1" color="gray" style={{ display: "block", marginTop: 8 }}>
+            <Text size="1" color="gray" style={{ display: "block", marginTop: 6, opacity: 0.6 }}>
               {latestMemory ? formatTimeAgo(latestMemory.createdAt) : ""}
             </Text>
           </motion.div>
 
-          {/* Activity + Image Row */}
-          <Flex gap="3" align="stretch" style={{ width: "100%" }}>
-            {/* Latest Activity - compact pill */}
+          {/* Activity + Image in one row */}
+          <Flex gap="3" align="center" style={{ width: "100%" }}>
+            {/* Activity badge */}
             <motion.div
               variants={itemVariants}
               whileHover={{ scale: 1.02 }}
@@ -177,69 +174,58 @@ export function VisualDashboard({ being, onOpenDetails }: VisualDashboardProps) 
                 flex: 1,
                 background: "var(--gray-2)",
                 borderRadius: 12,
-                padding: "14px 18px",
+                padding: "12px 16px",
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
-                gap: 12,
+                gap: 10,
               }}
             >
               <Box
                 style={{
-                  width: 10,
-                  height: 10,
+                  width: 8,
+                  height: 8,
                   borderRadius: "50%",
                   background: latestActivity?.success ? "var(--green-9)" : latestActivity ? "var(--red-9)" : "var(--gray-6)",
                   flexShrink: 0,
                 }}
               />
-              <Flex direction="column" gap="0" style={{ minWidth: 0 }}>
-                <Text size="1" color="gray" style={{ textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                  Activity
-                </Text>
-                <Text
-                  size="2"
-                  weight="medium"
-                  style={{
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis"
-                  }}
-                >
-                  {latestActivity?.activityName?.replace(/_/g, " ") || "None yet"}
-                </Text>
-              </Flex>
+              <Text size="2" style={{ opacity: 0.8 }}>
+                {latestActivity?.activityName?.replace(/_/g, " ") || "idle"}
+              </Text>
             </motion.div>
 
-            {/* Latest Generated Image */}
-            <AnimatePresence>
-              {latestImage?.url && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.8, width: 0 }}
-                  animate={{ opacity: 1, scale: 1, width: 80 }}
-                  exit={{ opacity: 0, scale: 0.8, width: 0 }}
-                  whileHover={{ scale: 1.05 }}
+            {/* Image thumbnail - always same size slot */}
+            <motion.div
+              variants={itemVariants}
+              whileHover={{ scale: 1.05 }}
+              style={{
+                width: 56,
+                height: 56,
+                borderRadius: 10,
+                overflow: "hidden",
+                background: "var(--gray-3)",
+                flexShrink: 0,
+                cursor: latestImage?.url ? "pointer" : "default",
+              }}
+            >
+              {latestImage?.url ? (
+                <img
+                  src={latestImage.url}
+                  alt={latestImage.prompt}
                   style={{
-                    height: 80,
-                    borderRadius: 12,
-                    overflow: "hidden",
-                    flexShrink: 0,
-                    cursor: "pointer",
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    display: "block"
                   }}
-                >
-                  <img
-                    src={latestImage.url}
-                    alt={latestImage.prompt}
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                      display: "block"
-                    }}
-                  />
-                </motion.div>
+                />
+              ) : (
+                <Flex align="center" justify="center" style={{ width: "100%", height: "100%" }}>
+                  <Text size="1" color="gray" style={{ opacity: 0.4 }}>🖼</Text>
+                </Flex>
               )}
-            </AnimatePresence>
+            </motion.div>
           </Flex>
         </Flex>
 
